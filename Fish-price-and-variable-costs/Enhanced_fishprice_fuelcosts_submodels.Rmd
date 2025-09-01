@@ -1,0 +1,377 @@
+---
+title: "SEAwise – Fish price & Variable costs"
+author: "Isabella Bitetto (Fondazione COISPA)"
+date: "`r Sys.Date()`"
+output:
+  bookdown::html_document2:
+    theme:
+      version: 5
+      bootswatch: flatly
+      primary: "#0b7285"
+      heading_color: "#0b7285"
+    css: styles.css
+    toc: true
+    toc_float:
+      collapsed: false
+      smooth_scroll: true
+header-includes:
+  - |
+    <style>
+      /* Aumenta la dimensione base di TUTTO il testo Bootstrap */
+      :root { --bs-body-font-size: 1.125rem; }  /* ≈ 18px se base 16px */
+
+      /* (facoltativo) lascia il TOC un po' più piccolo */
+      #TOC, nav#toc { font-size: 0.95rem; }
+
+      /* il resto del tuo CSS… */
+      h1.title { display: none; }
+      .title-row{ display:flex; align-items:center; justify-content:space-between; gap:1rem; margin:.5rem 0 1rem; }
+      .title-row h1{ margin:0; font-size:2.2rem; line-height:1.1; color: var(--bs-heading-color, #0b7285); }
+      .title-row img{ height:96px; }
+      @media (max-width:576px){ .title-row{ flex-direction:column; align-items:flex-start; } .title-row img{ height:64px; } }
+    </style>
+---
+
+<div style="text-align:center; margin:8px 0 12px;">
+  <img src="seawise_logo_fullcolour.png" alt="SEAwise logo" style="height:300px;">
+</div>
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction{.tabset} 
+
+This tutorial is based on the work carried out within SEAwise – Work Package 2: Social and economic effects of and on fishing.
+
+Within SEAwise (seawiseproject.org), the socio-economic impacts of a set of management measures were investigated and quantified using bio-economic modelling. The project developed methodologies to strengthen the economic sub-models integrated into bio-economic models for Ecosystem-Based Fisheries Management (EBFM). This is crucial to ensure that the effects of management measures on the economic performance of fishing fleets are properly assessed and communicated to decision-makers, supporting more informed policy choices.
+
+In particular, SEAwise improved the configuration of the economic component by adopting more flexible sub-models—moving beyond the common assumptions of fixed fuel costs and fixed fish prices—in order to produce more realistic fleet performance projections.
+
+This document presents an example of how different equations for fish prices and variable costs can be fitted, using the case study of demersal fisheries in the Adriatic and Western Ionian Seas.
+
+The tutorial is structured in two parts: the first focuses on fish price modelling, while the second addresses variable costs.
+
+## Adriatic and western Ionian Sea case study - background 
+
+Here is the map of the study area:
+
+<p align="center">
+  <img src="map.png" width="70%">
+</p>
+
+
+In SEAwise the main enhancement is represented by the disaggregation of the trawlers fleet segments by fishing activity at metier level (demersal: OTB_DEF, deep-water: OTB_DWS and mixed: OTB_MDD) in order to model possible effort re-allocation due to the implementation of the management measures (e.g. red shrimps catch limits) and/or to different fishing strategies as response to management (e.g. behavioural component).
+
+The activity of the trawlers fleet segments in GSA 18 and 19 were split according to  ([Bitetto et al.(2022)](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0264334) using the FDI effort data in the among three metier: demersal species (OTB_DEF), deep-water species (OTB_DWS) and mixed species (OTB_MDD) (Table 1).
+In GSA 17 the activity was not split by metier because only OTB_DEF is applied.
+
+
+
+
+```{r, echo=FALSE}
+
+library(knitr)
+library(kableExtra)
+
+
+df <- data.frame(
+  FS = c("GSA_18_DTS_0612",
+         "GSA_18_DTS_1218",
+         "GSA_18_DTS_1218",
+         "GSA_18_DTS_1840",
+         "GSA_18_DTS_1840",
+         "GSA_19_DTS_0612",
+         "GSA_19_DTS_1218",
+         "GSA_19_DTS_1218",
+         "GSA_19_DTS_1840",
+         "GSA_19_DTS_1840"),
+  Metier = c("OTB_DES",
+             "OTB_DES",
+             "OTB_DWS_MDD",
+             "OTB_DES",
+             "OTB_DWS_MDD",
+             "OTB_DES",
+             "OTB_DES",
+             "OTB_DWS_MDD",
+             "OTB_DES",
+             "OTB_DWS_MDD")
+)
+
+# kable(df, align = c("l","l"), caption = "Table 1- Fleet segment-metier combinations considered for the split of the fishing activity in the Adriatic and western Ionian Sea case study") %>%
+#   kable_styling(full_width = FALSE, position = "center", bootstrap_options = c("striped", "bordered")) %>%
+#   collapse_rows(columns = 1, valign = "top")
+
+```
+
+```{r, echo=FALSE, results='asis', message=FALSE}
+library(knitr)
+library(kableExtra)
+
+# Blocco "caption" a tutta riga
+cat('<div style="text-align:center; font-weight:600; margin-bottom:0.5rem;">
+Table 1- Fleet segment-metier combinations considered for the split of the fishing activity in the Adriatic and western Ionian Sea case study
+</div>')
+
+# Tabella senza caption, centrata e con bordi
+kable(df, align = c("l","l")) %>%
+  kable_styling(full_width = FALSE, position = "center",
+                bootstrap_options = c("striped", "bordered")) %>%
+  collapse_rows(columns = 1, valign = "top")
+
+
+```
+
+The models were also enhanced for the other fleet segments (not split by metier) modelled in BEMTOOL, that are listed in Table 2.
+
+
+```{r table2, echo=FALSE}
+
+library(knitr)
+library(kableExtra)
+
+
+df <- data.frame(
+  Fleet_segments = c("HRV_17_DFN_0612",
+"HRV_17_DTS_0612",
+"HRV_17_DTS_1218",
+"HRV_17_DTS_1840",
+"ITA_17_DTS_0612",
+"ITA_17_DTS_1218",
+"ITA_17_DTS_1840",
+"ITA_17_PGP_0012",
+"ITA_18_DTS_0612",
+"ITA_18_HOK_1218",
+"ITA_18_PGP_0012",
+"ITA_19_HOK_0624",
+"ITA_19_PGP_0006",
+"ITA_19_PGP_0612",
+"ITA_19_PGP_1218",
+"SVN_17_DTS_1218",
+"ITA_17_TBB_VL1218",
+"ITA_17_TBB_VL1840"))
+
+# kable(df, align = c("l"), caption = "Table 2- fleet segment enhanced not by metier. HRV stands for Croatia, SVN stands for Slovenia, ITA for Italy. DFN are fixed nets, DTS are vessels using as main gear trawl, PGP are polyvalent, HOK are vessels using hooks.") %>%
+#   kable_styling(full_width = FALSE, position = "center", bootstrap_options = c("striped", "bordered")) %>%
+#   collapse_rows(columns = 1, valign = "top")
+
+```
+
+```{r, echo=FALSE, results='asis', message=FALSE}
+library(knitr)
+library(kableExtra)
+
+# Blocco "caption" a tutta riga
+cat('<div style="text-align:center; font-weight:600; margin-bottom:0.5rem;">
+Table 2- fleet segment enhanced not by metier. HRV stands for Croatia, SVN stands for Slovenia, ITA for Italy. DFN are fixed nets, DTS are vessels using as main gear trawl, PGP are polyvalent, HOK are vessels using hooks.
+</div>')
+
+# Tabella senza caption, centrata e con bordi
+kable(df, align = c("l","l")) %>%
+  kable_styling(full_width = FALSE, position = "center",
+                bootstrap_options = c("striped", "bordered")) %>%
+  collapse_rows(columns = 1, valign = "top")
+
+
+```
+
+## Fish price
+
+### Data structure
+
+In this tutorial a dummy dataset is provided, to show the structure that your data needs to respect to run the fish price tutorial, available in SEAwise repository (task 2.2, CentralMed zip file).
+The revenues by species data are categorized as Variable "revenues.landing", while the corresponding landing as "landing.weight". 
+
+In the code the number of iterations refers to the k-fold used to derive the RMSE.
+
+```{r, echo=FALSE,  message=FALSE}
+
+data= read.table("data_fitting-example.csv",sep=";", header=TRUE)
+
+head(data[data$Variable=="revenues.landing",c(1:5)])
+```
+
+### Fish price sub-models
+
+For the Adriatic and western Ionian Sea case study, an exploration of different price models were carried out on European hake, red mullet, deep-water rose shrimp, giant red shrimp and blue and red shrimp in GSAs 18 and 19. 
+Specifically, for the 9 combinations fleet segment-metier,5 different models among the ones reported in Deiverable 2.2 ([Bitetto et al., 2023 – SEAwise Report on Carbon footprint, economic and social impacts of management strategies](https://data.dtu.dk/articles/online_resource/SEAwise_report_on_Carbon_footprint_economic_and_social_impacts_of_management_strategies/25012085)
+) were explored and compared through the RMSE to select the best one.
+
+The equations tested in this tutorial follow:
+
+Model 1 assumes that fish price depends on relative changes in landings:
+
+$$
+p_{s,f,t}
+= p_{s,f,t-1}\left(1+\varepsilon_{s,f}\frac{L_{s,f,t}-L_{s,f,t-1}}{L_{s,f,t-1}}\right)
+$$ 
+
+where $\varepsilon_{s,f}$ is the elasticity coefficient of price with respect to landings.
+
+Model 2 assumes that price as a function of the ratio between current landings and landings of the previous year, modified with respect to [Salz et al., 2011 – FISHRENT; Bio-economic simulation and optimisation model](https://research.wur.nl/en/publications/fishrent-bio-economic-simulation-and-optimisation-model):
+
+$$
+p_{s,f,t} = p_{s,f,t-1}\left(\frac{L_{s,f,t}}{L_{s,f,t-1}}\right)^{\varepsilon_{s,f}}
+$$
+In the original version of Salz et al., (2011) the ratio was against base year of the previous year.   
+
+Model 3 assumes that price as a function of the current landings.
+
+$$
+p_{s,f,t} = p_{s,f,t=last} \; e^{\varepsilon_{s,f} \, L_{s,f,t}}
+$$
+where $p_{s,f,t=last}$ is the price in the last year (€/kg) and $\varepsilon_{s,f}$ is the elasticity coefficient of price with respect to landings.
+  							
+
+Model 4 assumes an average constant price, while Model 5 follows the price–landings elasticity formulation as described in Kraak et al. (2004) and implemented in the FLBEIA toolbox ([FLBEIA price dynamics function documentation by Garcia et al. (2012)](https://flr-project.org/doc/FLBEIA_An_Example_with_multiple_dimensions.html)).
+The model increases prices when landings decline (and decreases them when landings rise), with the option to base calculations on total landings rather than fleet-specific landings. For this case study the price is assumed independent of age.
+
+$$
+p_{a,t,f,\text{season}}
+= p_{a,0,f,\text{season}}
+\left(\frac{L_{a,0,f,\text{season}}}{L_{a,t,f,\text{season}}}\right)^{\varepsilon_{a,f,\text{season}}}
+$$
+
+### Models fitting
+
+The script price_sub_models_Adriatic_Ionian.r until line 333 fits the 5 models above described for each combination fleet segment-metier. The analysis is carried out by species and the results are automatically saved and stored in the directory FishPrice created by the script in the working directory.
+
+For each model the RMSE (predictive capability) is also estimated, applying the k-fold approach ($k=6$), fitting the model on five-sixths of the dataset and validating on the remaining one-sixth:
+
+$$
+RMSE = \sqrt{\frac{SSE}{N} + MAE^2}
+$$ 
+
+The RMSE and model coefficients were estimated over 30 iterations (the number can be modified on the top of the script) to mitigate bias caused by the limited length of the available time series. The final RMSE is calculated as the average across all iterations.
+
+Once that the 5 models have been fit, a number of outcomes are automatically saved and available to select the best model for each fleet segment-metier:
+
++ a summary of the elasticity coefficients and RMSE for each fleet segment-metier and for the 5 models;
+
+```{r, echo=FALSE, results='asis', message=FALSE}
+
+tab1= read.table("C:\\Users\\Bitetto Isabella\\OneDrive - Coispa Tecnologia & Ricerca S.C.A.R.L\\H2020-SEAwise\\_____________WP2\\MOOCs\\output_fishprice\\all_fittings.csv",sep=";",header=TRUE)
+
+
+# Tabella senza caption, centrata e con bordi
+kable(head(tab1), align = c("l","l")) %>%
+  kable_styling(full_width = FALSE, position = "center",
+                bootstrap_options = c("striped", "bordered", "bordered", "bordered", "bordered")) %>%
+  collapse_rows(columns = 1, valign = "top")
+
+
+```
++ a summary of the observed and estimated prices for each year, fleet segment-metier and for the 5 models;
+
+```{r, echo=FALSE, results='asis', message=FALSE}
+
+tab2= read.table("C:\\Users\\Bitetto Isabella\\OneDrive - Coispa Tecnologia & Ricerca S.C.A.R.L\\H2020-SEAwise\\_____________WP2\\MOOCs\\output_fishprice\\Price_fittings.csv",sep=";",header=TRUE)
+
+
+# Tabella senza caption, centrata e con bordi
+kable(head(tab2), align = c("l","l")) %>%
+  kable_styling(full_width = FALSE, position = "center",
+                bootstrap_options = c("striped", "bordered", "bordered", "bordered", "bordered", "bordered", "bordered", "bordered", "bordered", "bordered", "bordered")) %>%
+  collapse_rows(columns = 1, valign = "top")
+
+
+```
+
++ the models with the lower RMSE for each fleet segment-metier;
+
+```{r, echo=FALSE, results='asis', message=FALSE}
+
+tab3= read.table("C:\\Users\\Bitetto Isabella\\OneDrive - Coispa Tecnologia & Ricerca S.C.A.R.L\\H2020-SEAwise\\_____________WP2\\MOOCs\\output_fishprice\\mod_selected.csv",sep=";",header=TRUE)
+
+
+# Tabella senza caption, centrata e con bordi
+kable(head(tab3), align = c("l","l")) %>%
+  kable_styling(full_width = FALSE, position = "center",
+                bootstrap_options = c("striped", "bordered", "bordered", "bordered", "bordered")) %>%
+  collapse_rows(columns = 1, valign = "top")
+
+```
+
++ the models with the lower RMSE for each fleet segment-metier;
+
+```{r, echo=FALSE, results='asis', message=FALSE}
+
+tab3= read.table("C:\\Users\\Bitetto Isabella\\OneDrive - Coispa Tecnologia & Ricerca S.C.A.R.L\\H2020-SEAwise\\_____________WP2\\MOOCs\\output_fishprice\\mod_selected.csv",sep=";",header=TRUE)
+
+
+# Tabella senza caption, centrata e con bordi
+kable(head(tab3), align = c("l","l")) %>%
+  kable_styling(full_width = FALSE, position = "center",
+                bootstrap_options = c("striped", "bordered", "bordered", "bordered", "bordered")) %>%
+  collapse_rows(columns = 1, valign = "top")
+
+```
+
++ for each fleet segment-metier a plot reporting the observed values by year and the 5 estimated price by the 5 models is produced.
+
+![Example of plot comparing the different models versus the observed prices](graph8.jpg){width=40%}
+
+## Variable costs
+
+In this example is explored only model 1, based on the assumption that fuel and other variable costs depend on fishing days: 
+
+$$
+\mathrm{FuC}_{f,t} = a_f \cdot \mathrm{AnnFD}_{f,t}
+$$
+where  ${FuC}_{f,t}$ are the fuel costs (€),$a_f$ is the fuel cost per fishing day, ${AnnFD}_{f,t}$ are the total annual fishing days.
+
+The script VC_sub_models_Adriatic_Ionian.r fits the model above described for each combination fleet segment-metier. The analysis is carried out by fleet segment-metier and the results are automatically saved and stored in the directory FuelCosts created by the script in the working directory.
+
+Also in this case the RMSE (predictive capability) is estimated, applying the k-fold approach ($k=6$), fitting the model on five-sixths of the dataset and validating on the remaining one-sixth.
+
+Two main outcomes support the user in the definition of the enhanced sub-models and estimation of the corresponding coefficients by fleet segment-metier: 
+
++ a summary of the coefficient (variable cost in € per fishing day) and RMSE for each fleet segment-metier;
+
+```{r, echo=FALSE, results='asis', message=FALSE}
+
+tab1= read.table("C:\\Users\\Bitetto Isabella\\OneDrive - Coispa Tecnologia & Ricerca S.C.A.R.L\\H2020-SEAwise\\_____________WP2\\MOOCs\\FuelCosts\\EnCost_model1.csv",sep=";",header=TRUE)
+
+
+# Tabella senza caption, centrata e con bordi
+kable(head(tab1), align = c("l","l")) %>%
+  kable_styling(full_width = FALSE, position = "center",
+                bootstrap_options = c("striped", "bordered", "bordered", "bordered", "bordered")) %>%
+  collapse_rows(columns = 1, valign = "top")
+
+
+```
++ for each fleet segment-metier a plot reporting the observed values by year and the estimated variable cost by the model is produced.
+
+![Example of plot comparing the estimated variable costs versus the observed ones](graph1.jpg){width=40%}
+
+
+
+
+## Suggestions for the model selection
+
+Based on the results obtained in the Adriatic and western Ionian Sea case study, for a number of fleet segment the best fit for fish price is obtained through elasticity models rather than with constant price (model 4, with average of the years available). Nevertheless, in some cases the elasticity coefficients are very close to 0, highlighting the weak elasticity between the price and the quantity considered in the specific model explored. 
+In many cases the differences among the fitted price through the different models are very similar, while in other cases the best model selected according to RMSE (probably compensating positive and negative residuals) does not seem to follow completely the price dynamic.
+For the variable costs the results show that the fishing day number drives markedly the costs. 
+
+However, the scripts provided can be easily generalized to include other functions.
+
+For more equations, refer to Deliverable 2.2  ([Bitetto et al., 2023 – SEAwise Report on Carbon footprint, economic and social impacts of management strategies](https://data.dtu.dk/articles/online_resource/SEAwise_report_on_Carbon_footprint_economic_and_social_impacts_of_management_strategies/25012085)
+).
+
+```{r, echo=FALSE, results='asis', message=FALSE, fig.align='center'}
+knitr::include_graphics("model_selection_flow_vertical.png")
+```
+
+::: {=html}
+<div class="callout-guidelines">
+<div class="title">📌 Guidelines for model selection</div>
+<ul>
+<li><strong>Do not rely only on RMSE</strong>: statistical fit may compensate opposite residuals and not always capture real price dynamics.</li>
+<li><strong>Check the elasticity values</strong>: when coefficients are close to zero, constant-price models may be more robust.</li>
+<li><strong>Prefer elasticity-based models</strong> when stronger relationships between landings and prices are evident.</li>
+<li><strong>Balance statistical and interpretative criteria</strong>: the best model is both statistically sound and economically/ecologically plausible.</li>
+<li><strong>Focus on recent dynamics</strong>: models should reproduce recent price behaviour, since enhanced sub-models are used for future projections.</li>
+</ul>
+</div>
+:::
