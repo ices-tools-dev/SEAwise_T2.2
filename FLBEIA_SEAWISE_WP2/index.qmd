@@ -1,0 +1,1080 @@
+---
+project:
+  type: website
+  output-dir: docs
+title: "SEAWISE: Price Dynamics in FLBEIA"
+author:
+  - name: "Marga Andrés"
+  - name: "Miren Altuna-Etxabe"
+  - name: "Affilation: AZTI"
+date: "01 September 2025"
+format:
+  html:
+    toc: true
+    toc-title: "Contents"
+    toc-location: "left"
+    toc-depth: 3
+    code-fold: true
+    code-tools: true
+    number-sections: true
+    theme: cosmo
+    anchor-sections: true
+    smooth-scroll: true
+    link-external-icon: true
+    link-external-newwindow: true
+    title-block-banner: "#4097C2"
+    title-block-banner-image: logo.png
+    title-block-banner-color: white
+editor: visual
+---
+
+[![](logo.png){fig-align="top" width="100"}](https://seawiseproject.org/)
+
+[Link to SEAWISE web](https://seawiseproject.org/ "SEAWISE")
+
+[Link to SEAWISE Github](https://github.com/ices-tools-dev/SEAwise)
+
+## INTRODUCTION
+
+This document describes the code used to integrate new price dynamics into FLBEIA simulations, based on the approach developed in the SEAWISE project. The process was carried out in several key steps:
+
+1.  **Price functions in FLBEIA**\
+    A comprehensive collection of candidate price functions was compiled for consideration, and how it is coded within FLBEIA.
+
+2.  **Price model selection**\
+    A systematic method was developed to evaluate and select the most appropriate price dynamics model.
+
+3.  **Parameterization for simulations**\
+    Guidance is provided on how to include the parameterization of price dynamics in the model setup to enable realistic simulations.
+
+The aim of this document is to explain how price dynamics can be integrated into simulations using FLBEIA. The code provided is not intended for execution, but rather to illustrate how price functions are parameterized and how they operate within the FLBEIA framework.
+
+## PRICE FUNCTIONS IN FLBEIA
+
+The price of a species can be influenced by both exogenous factors (e.g., changes in imports) and endogenous factors (e.g., variations in landings or average size). In FLBEIA, only price functions dependent on endogenous variables are considered, as exogenous factors remain constant within the model framework.  Before SEAWISE project, in FLBEIA were two price functions implemented:
+
+-   Fixed Price: The prices are given as input data and are unchanged within the simulation.\
+-   Elastic Price - Type 1: This function implements the price function used in \[Kraak et al., 2004\](https://www.ices.dk/sites/pub/CM%20Doccuments/2004/D/WGMG04.pdf
+-   Elastic Price at age - Type 1: This function implements the price function used in [Kraak et al., 2004](https://www.ices.dk/sites/pub/CM%20Doccuments/2004/D/WGMG04.pdf) by considering the age.
+
+In SEAWISE [Deliverable 2.2.](https://data.dtu.dk/articles/online_resource/SEAwise_report_on_Carbon_footprint_economic_and_social_impacts_of_management_strategies/25012085?file=44083586), Section 3.1.1. presents several price functions to be included into [FLBEIA](https://github.com/flr/FLBEIA) to enhance the modeling of price dynamics. In addition, an external factor that, for example, causes the price to increase by a fixed percentage each year has also been included as an option. The selected prices model that were included in FLBEIA are:
+
+### Price model Type 1
+
+This type was already coded already implemented before SEAWISE. The function was defined from *Salz et al. (2011)* and is defined as:
+
+$$
+p_{s,f,t} = p_{s,f,0} \left( \frac{L_{s,f,t}}{L_{s,f,0}} \right)^{\varepsilon_{s,f}}
+\
+$$ where *s* is the species, *f* the fleet segment, *t* the time, *p* the price with the unit (€/kg), *L* the landing (in kg), *a* the age, *m* the metier and e *ε~s,f~* is elasticity coefficient price-landings.
+
+### Price model Type 2
+
+Modified with respect to Salz et al. (2011)\*
+
+The price function is defined as:
+
+$$
+p_{s,f,t} = p_{s,f,t-1} \left( \frac{L_{s,f,t}}{L_{s,f,t-1}} \right)^{\varepsilon_{s,f}}
+\
+$$
+
+In the original version of Salz et al. (2011), the ratio was calculated against a base year using instead of previous year.
+
+### Price model Type 3
+
+Price as a function of relative changes in landings The price function is defined as:
+
+$$
+p_{s,f,t} = p_{s,f,t-1} \left(1 + \varepsilon_{s,f} \cdot \frac{L_{s,f,t} - L_{s,f,t-1}}{L_{s,f,t-1}} \right)
+\
+$$
+
+### Price model Type 4
+
+Price as a function of the current landings and is defined as:
+
+$$
+p_{s,f,t} = p_{s,f,t=last}^ \cdot e^{\varepsilon_{s,f}L_{s,f,t}}
+\
+$$
+
+Where:
+
+-   $p_{\text{s,f,t=last}}$: is the price in the last year of simulation (€/kg)\
+-   $\varepsilon_{s,f}$: is the elasticity coefficient for price–landings
+
+The FLBEIA team has enhanced the code to incorporate additional price dynamics, which can be applied at either the fleet or métier level. The price dynamics can also be defined considering the age of the fish, or without consider the age, i.e., the same function for all ages. The updated code is available [here](https://github.com/flr/FLBEIA/blob/master/R/OM_2c_Price_Dynamics.R#L1:), code that we briefly describe below:
+
+Available Functions are divided in: 
+
+1.  **`fixedPrice`** where the price is provided as input and the function simply returns the object unchanged.\
+2.  **`elasticPrice`** in which the elasticity function that models the price use the same formula for all age groups.\
+3.  **`elasticPriceAge`**: Elasticity function that models the price using different formulas for each age group.\
+
+The options for `elasticPrice` and `elasticPriceAge` are:\
+- `total`determines how the price function is conditioned: `TRUE` is based on total landings and `FALSE` based on landings of the specific fleet landings.\
+- `type`specifies the elasticity function to use: `type1` when price varies according to Kraak’s elasticity function (Kraak, 2004); `type2` when price varies according to Function 3 from Deliverable 2.2.; `type3` when the price varies according to Function 1 from Deliverable 2.2.; `type4`when the price varies according to Function 4 from Deliverable 2.2. and `type5` is equivalent to `fixedPrice`. 
+
+The argument `RP`allows you to adjust the calculated price by increasing or decreasing it by a specific percentage.
+
+The following code is simply intended to explore how price functions are coded within FLBEIA and to understand their internal workings. It is not meant for model parameterization.
+
+FIXED PRICE
+
+```{r, eval=FALSE, fold="TRUE"}
+#-------------------------------------------------------------------------------
+fixedPrice <- function(fleets, covars, fleets.ctrl, year = 1, season = 1,...){
+    return(fleets)
+}
+```
+
+ELASTIC PRICE
+
+```{r, eval=FALSE, fold="TRUE"}
+elasticPrice <- function(fleets, covars, fleets.ctrl, stnm, flnm, mtnm, 
+                         year = 1, season = 1){
+
+    fms      <- fleets[[flnm]][[mtnm]][[stnm]]
+    fms.ctrl <- fleets.ctrl[[flnm]][[mtnm]][[stnm]]
+    
+    yr <- year
+    ss <- season
+    
+    # Parameters 
+    elsa     <- fms.ctrl[['pd.elsa']][,ss,,,]  # [na,it] Price-landing elasticity.
+    La0      <- fms.ctrl[['pd.La0']][,ss,,,]   # [na,it] Base landings.
+    Pa0      <- fms.ctrl[['pd.Pa0']][,ss,,,]   # [na,it] Base price.
+    type     <- fms.ctrl[["type"]]             # [n,it]  Numeric vector 
+    total    <- fms.ctrl[['pd.total']]         # Logic:  If TRUE, the function
+                 # depends on total landings, and if FALSE on the landings 
+                 # of the fleet in question.
+    
+    if(is.null(fms.ctrl[['pd.RP']])){RP   <- FALSE  
+    # By default the price function does not have an added increase/decrease.
+    } else{  
+      RP       <- fms.ctrl[['pd.RP']]              
+      # Logic: If TRUE, the function has an added increase/decrease, 
+      # and if FALSE it does not.
+      addRP    <- fms.ctrl[['pd.addRP']]                    
+      # [n,it] Percentage of the price increased/decreased. Same for all ages.
+      yr.addRP <- fms.ctrl[['pd.yr']]          
+      # [n,it] Numeric vector. The year from which the price starts increasing
+      # or decreasing annually.
+    }
+    
+    # Landings
+    if(total == TRUE){
+      Lau      <- landWStock(fleets, stnm)[,yr,,ss]
+      Lau_init <- landWStock(fleets, stnm)[,yr-1,,ss] 
+      Lau_hist <- landWStock(fleets, stnm)[,,,ss] 
+    }else{
+      Lau      <- fms@landings.wt[,yr,,ss] * fms@landings.n[,yr,,ss]
+      Lau_init <- fms@landings.wt[,yr-1,,ss] * fms@landings.n[,yr-1,,ss]
+      Lau_hist <- fms@landings.wt[,,,ss] * fms@landings.n[,,,ss]
+    }
+    
+    La_f     <- unitSums(Lau)[drop=T]
+    La_init  <- unitSums(Lau_init)[drop=T]
+    La_hist  <- unitSums(Lau_hist)[drop=T]
+    
+    # Type
+    if(type == 1) { P <- Pa0*(La0/La_f)^elsa }
+    
+    if(type == 2 | type == 3 | type == 4) {  
+      els    <- quantMeans(elsa)    # [n,it]
+      L_f    <- sum(La_f)           # [n,it]
+      L_init <- sum(La_init)        # [n,it]
+      L_hist <- colSums(La_hist)    # [n,it]
+      P_init <- quantMeans(fms@price[, yr-1, , ss])  # [n,it]
+      
+      if(L_f == 0){P <- NA          # When L_f = 0 -> set P = NA
+      } else{
+        if(L_init== 0) {
+          L_hist[is.na(L_hist)] <- 0
+          filtered_L <- L_hist[L_hist != 0]       
+          # Remove years with no landing data.
+          Last_Lyr <- max(as.numeric(names(filtered_L)))
+          # Identify the last year with landing != 0.
+          L_init <- as.numeric(L_hist[names(L_hist)== Last_Lyr])  
+          # Take the last landing != 0.
+          P_init <- quantMeans(fms@price[, grepl(Last_Lyr, names(L_hist)), , ss]) 
+          # Take the corresponding price data.
+        } 
+        if(type == 2){P <- P_init*(L_f/L_init)^els}
+        if(type == 3){P <- P_init*(1+els*((L_f-L_init)/L_init))}
+        if(type == 4){P <- P_init*exp(els*L_f)}
+      }
+    }
+    
+    P <- ifelse(P == Inf, NA, P)    # When L_f = 0 -> P = Inf -> set P = NA
+    
+    # Added increase/decrease in Price.
+    if(RP == TRUE){
+      if(type == 1){
+        yr.addRP.pos <- which(colnames(La_hist) %in% yr.addRP) 
+        # Identify the position of the year from which the price starts increasing or decreasing annually.
+        nyr <- yr-yr.addRP.pos+1                
+        # Number of years since the first year of the simulation.
+      } else{
+        P_data <- quantMeans(fms@price[, 1:(yr-1), , ss]) 
+        P_data[is.na(P_data)] <- 0
+        filtered_P <- P_data[P_data != 0]                 
+        # Remove years with no price data.
+        Last_Pyr <- max(as.numeric(colnames(filtered_P))) 
+        # Identify the last year with price data != 0.
+        
+        yr.name <- as.numeric(colnames(La_hist)[yr])  
+        # Actual year
+        nyr <- length(yr.name:Last_Pyr)-1   
+        # Number of years since the last price data.
+      }
+      P <- P*(1+addRP)^nyr
+    }
+    
+    fms@price[, yr, , ss] <- P 
+    
+    fleets[[flnm]]@metiers[[mtnm]]@catches[[stnm]] <- fms
+    
+    return(fleets)
+}
+```
+
+ELASTIC PRICE BY AGE
+
+```{r, eval=FALSE, fold="TRUE"}
+elasticPriceAge <- function(fleets, covars, fleets.ctrl, stnm, flnm, mtnm, year = 1, season = 1){
+  
+    fms      <- fleets[[flnm]][[mtnm]][[stnm]]
+    fms.ctrl <- fleets.ctrl[[flnm]][[mtnm]][[stnm]]
+    
+    yr <- year
+    ss <- season
+    
+    # Parameters
+    elsa    <- fms.ctrl[['pd.elsa']][,ss,,,]# [na,it] Price-landing elasticity.
+    La0     <- fms.ctrl[['pd.La0']][,ss,,,] # [na,it] Base landings.
+    Pa0     <- fms.ctrl[['pd.Pa0']][,ss,,,] # [na,it] Base price.
+    type    <- fms.ctrl[["type"]]           
+    # [na,it] Numeric vector: The type depend on age.
+    total   <- fms.ctrl[['pd.total']] 
+    # Logic: If TRUE, the function depends on total landings, and if FALSE on the landings of the fleet in question.
+    
+    if(is.null(fms.ctrl[['pd.RP']]))    {RP   <- FALSE  
+    # By default the price function does not have an added increase/decrease.
+    } else{  
+      RP       <- fms.ctrl[['pd.RP']]      
+      # Logic: If TRUE, the function has an added increase/decrease, 
+      # and if FALSE it does not.
+      addRP    <- fms.ctrl[['pd.addRP']]
+      # [n,it] Percentage of the price increased/decreased. Same for all ages.
+      yr.addRP <- fms.ctrl[['pd.yr']]  
+      # [n,it] Numeric vector. The year from which the price starts increasing
+      # or decreasing annually.
+    }
+    
+    # Landings
+    if(total == TRUE){
+      Lau      <- landWStock(fleets, stnm)[,yr,,ss]
+      Lau_init <- landWStock(fleets, stnm)[,yr-1,,ss] 
+      Lau_hist <- landWStock(fleets, stnm)[,,,ss] 
+    }else{
+      Lau      <- fms@landings.wt[,yr,,ss] * fms@landings.n[,yr,,ss]
+      Lau_init <- fms@landings.wt[,yr-1,,ss] * fms@landings.n[,yr-1,,ss]
+      Lau_hist <- fms@landings.wt[,,,ss] * fms@landings.n[,,,ss]
+    }
+    
+    La_f    <- unitSums(Lau)[drop=T]
+    La_init <- unitSums(Lau_init)[drop=T]
+    La_hist <- unitSums(Lau_hist)[drop=T]
+    
+    Pa_init <- fms@price[, yr-1, , ss]  # [na,it]
+    
+    # Type
+    for(a in 1:length(fms@range[["min"]]:fms@range[["max"]])){
+      
+      tpa <- type[a]  # Price function of age a
+      
+      if(tpa == 1){Pa <- Pa0[a]*(La0[a]/La_f[a])^elsa[a]
+      } else {
+        if(La_f[a] == 0){Pa <- NA   # When L_f = 0 -> set P = NA
+        } else{
+          if(La_init[a]== 0) {
+            La_hist[a,][is.na(La_hist[a,])] <- 0
+            filtered_La <- La_hist[a,][La_hist[a,] != 0]     
+            # Remove years with no landing data.
+            Last_Layr <- max(as.numeric(names(filtered_La)))  
+            # Identify the last year with landing != 0.
+            La_init <- as.numeric(La_hist[,colnames(La_hist)== Last_Layr])   
+            # Take the last landing =! 0.
+            Pa_init <- fms@price[, grepl(Last_Layr, colnames(La_hist)), , ss]
+            # Take the corresponding price data.
+          }
+        }
+        if(tpa == 2){Pa <- Pa_init[a]*(La_f[a]/La_init[a])^elsa[a]} 
+        if(tpa == 3){Pa <- Pa_init[a]*(1+elsa[a]*((La_f[a]-La_init[a])/La_init[a]))} 
+        if(tpa == 4){Pa <- Pa_init[a]*exp(elsa[a]*La_f[a])} 
+        if(tpa == 5){Pa <- elsa[a]}
+      }
+      
+      Pa <- ifelse( Pa==Inf, NA, Pa)  # When La_f = 0 -> Pa = Inf -> set Pa = NA
+```
+
+INCREASE OR DECREASE THE PRICE OVER THE TIME SERIES OF THE SIMULATION
+
+```{r, eval=FALSE, fold="TRUE"}
+      if(RP == TRUE){
+        if(tpa == 1 | tpa == 5){
+          yr.addRP.pos <- which(colnames(La_hist) %in% yr.addRP)
+          # Identify the position of the year from which the price starts
+          # increasing or decreasing annually.
+          nyr <- yr-yr.addRP.pos+1    
+          # Number of years since the first year of the simulation.
+        } else{
+          P_data <- quantMeans(fms@price[, 1:(yr-1), , ss]) 
+          P_data[is.na(P_data)] <- 0
+          filtered_P <- P_data[P_data != 0]         Ç
+          # Remove years with no price data.
+          Last_Pyr <- max(as.numeric(colnames(filtered_P))) 
+          # Identify the last year with price data != 0.
+          
+          yr.name <- as.numeric(colnames(La_hist)[yr]) 
+          # Actual year.
+          nyr <- length(yr.name:Last_Pyr)-1      
+          # Number of years since the last price data.
+        }
+        Pa <- Pa*(1+addRP)^nyr
+      }
+      fms@price[a,yr,,ss] <- Pa      
+      # [na,it]
+    }
+    
+    fleets[[flnm]]@metiers[[mtnm]]@catches[[stnm]] <- fms
+    
+    return(fleets)
+}
+```
+
+## PRICE MODEL SELECTION
+
+In this section we explain how determine the price dynamics to be implement for the simulations for each species and fleet or metier. Firstly, data must be collected in the correct format. Then, run price models from deliverable 2.2. Next, assess the suitability of each model thought the Root Mean Square Error (RMSE) by hindcasting on only 2/3 of the data and forecasting 1/3 of the data. This approach allows us to select the best-fitted model for each stock, fleet segment or mètier and age (if the price functions is done by age group, which is optional).\
+The price data can be find in data from STECF or first sale notes. Landing data from ICES Working Groups (for example, Ices Working Group on Mixed Fisheries), STECF data or loogbooks. The correspondences of fleets segments of landings data and price data had to be aligned, although it\`s not always straightforward and assumptions may need to be made.\
+The following script is an example. This code was used to select the best price function for the HAKE, that is caught by French and Spanish fleets.
+
+More information and example in this [link](https://coispa.github.io/Fish-price-and-variable-costs/) you can find a detailed example.
+
+READ AND PREPARE DATA
+
+```{r, eval=FALSE, echo=TRUE, fold=TRUE}
+library(dplyr)
+library(stringr)
+
+wd <- 'C:/xxx' # Working directory
+setwd(wd) # Set working directory
+
+# This is the Catch table of FDI datacall, but the script can be adapted to read any dataset with landings and revenues.
+# https://stecf.jrc.ec.europa.eu/dd/fdi
+
+FDI_France <- read.csv(paste0(wd, '/Data/Demersals/FDI_France.csv'), sep = ";")
+# Select data for Frech fleets catching HKE.
+colnames(FDI_France) <- c("Country", "Year", "Quarter", 
+                          "Vessel.Length.Category", "Fishing.Technique",
+                          "Gear.Type", "Target.assemblage", "Mesh.size.range", 
+                          "Metier", "Supra.region", "Sub.region", 
+                          "EEZ.Indicator","Geo.Indicator",
+                          "Geo.Nephrops.sub.region", "Deep",
+                          "Species", "tot_live_weight_landed..tonnes.",
+                          "tot_value_landings..euros.",
+                          "Total.Discards..tonnes.") 
+
+# Select data for Spanish fleets catching HKE.
+FDI_Spain    <- read.csv(paste0(wd, '/Data/Demersals/FDI_Spain.csv'), sep = ";")
+colnames(FDI_Spain) <- c("Country", "Year", "Quarter", "Vessel.Length.Category",
+                         "Fishing.Technique", "Gear.Type", "Target.assemblage",
+                         "Mesh.size.range", "Metier", "Supra.region",
+                         "Sub.region", "EEZ.Indicator", "Geo.Indicator",
+                         "Geo.Nephrops.sub.region", "Deep", "Species", 
+                         "tot_live_weight_landed..tonnes.",
+                         "tot_value_landings..euros.",
+                         "Total.Discards..tonnes.")  
+land_data <- rbind(FDI_France, FDI_Spain) # Merge both data bases.
+
+# Selection of species and area
+species <- c("HKE") # Select target species.
+ww      <- c("27.8.A",  "27.8.B", "27.8.D") # Select the case study area.
+
+land_data$Gear <- substr(land_data$Metier, 1, 3)
+# Select the fishing gear
+DemGear        <- c("GNS", "GTR", "LLS", "OTB", "PTB", "OTM", "SSC") 
+land_data      <- land_data[land_data$Species %in% species & 
+                              land_data$Sub.region %in% ww & 
+                              land_data$Gear %in% DemGear,]
+
+land_data <- land_data[land_data$tot_live_weight_landed..tonnes. != "C", ]
+land_data <- land_data[land_data$tot_value_landings..euros. != "C", ]
+land_data <- land_data[land_data$tot_live_weight_landed..tonnes. != "NA", ]
+
+land_data$tot_live_weight_landed..tonnes. <-
+  as.numeric(land_data$tot_live_weight_landed..tonnes.)
+land_data$tot_value_landings..euros.  <-
+  as.numeric(land_data$tot_value_landings..euros.)
+
+land_data$FS <- paste(land_data$Country, substr(land_data$Metier, 1, 3), 
+                      land_data$Vessel.Length.Category, sep = "_")
+
+land_data2 <- land_data %>% group_by(FS, Year) %>%
+  summarise(Landings = sum(tot_live_weight_landed..tonnes.),
+   Revenues = sum(tot_value_landings..euros.)) # Compute landings and revenues.
+
+# Removing NA values in value and 0 values in weight
+land_data2 <- subset(land_data2, !is.na(land_data2$Revenues))
+land_data2 <- subset(land_data2, Landings > 0)
+
+# Price average
+land_data2$price <- land_data2$Revenues/(land_data2$Landings*1000) 
+land_data2       <- subset(land_data2, !is.na(price)) # Clean data
+```
+
+CHOOSE THE BEST PRICE DYNAMICS MODEL
+
+```{r, eval=FALSE, echo=TRUE, fold=TRUE}
+# create folder to save model fittings
+# dir.create("FishPrice")
+wd.out <- paste("Fish_Price_Dem/", species, "Best_model", sep = "")
+# dir.create(wd.out) # run first time
+
+## 1. Calculate elasticity coefficients 
+# Hindcasting only on 2/3 of the data -> for RMSE but the final model all the data
+strata <- unique(land_data2$FS)
+
+# Model 1 #
+# i=1
+epsilon             <- data.frame(epsilon = matrix(ncol=1, nrow=length(strata)))
+epsilon$FS          <- ""
+epsilon$SPECIES     <- species
+epsilon$MODEL       <- 1
+epsilon$fore_points <- 0
+
+for (i in c(1:length(strata))) {
+  # for (i in c(1:16)){
+  epsilon$FS[i] <- strata[i]
+  
+  land_data2_temp            <- land_data2[land_data2$FS==strata[i],]
+  land_data2_temp$ratio      <- 0
+  land_data2_temp$ratio[-1]  <- land_data2_temp$price[-1]/
+    land_data2_temp$price[-nrow(land_data2_temp)]
+  land_data2_temp$ratio2     <- 999
+  land_data2_temp$ratio2[-1] <- (land_data2_temp$Landings[-1]-
+                                   land_data2_temp$Landings[-nrow(land_data2_temp)])/                                                                                                    land_data2_temp$Landings[-1]
+  
+  # Hindcasting only on 2/3 of the data 
+  n            <- round(nrow(land_data2_temp)*2/3, 0)
+  hind_indices <- sample(2:nrow(land_data2_temp), n)
+  fore         <- which(!seq(1:nrow(land_data2_temp)) %in% hind_indices)
+
+  epsilon[i,]$fore_points <- paste(fore, collapse = ",")
+  
+  if(nrow(land_data2_temp)>5) {
+    epsilon[i,]$epsilon <- round(coefficients(lm((ratio-1)~ratio2+0, data = land_data2_temp[hind_indices,])), 5)
+  }
+}
+
+write.table(epsilon, file.path(wd.out, "Price_model1.csv"),
+            sep = ";", row.names = F)
+
+# Model 2 #
+# This model is not included because depends on imports, exogenous variable.
+
+# Model 3 #
+# i=1
+epsilon             <- data.frame(epsilon = matrix(ncol=1, nrow=length(strata)))
+epsilon$FS          <- ""
+epsilon$SPECIES     <- species
+epsilon$MODEL       <- 3
+epsilon$fore_points <- 0
+
+for (i in c(1:length(strata))) {
+  epsilon$FS[i] <- strata[i]
+  
+  land_data2_temp            <- land_data2[land_data2$FS==strata[i],]
+  land_data2_temp$ratio      <- 0
+  land_data2_temp$ratio[-1]  <- land_data2_temp$price[-1]/
+    land_data2_temp$price[-nrow(land_data2_temp)]
+  land_data2_temp$ratio2     <- 999
+  land_data2_temp$ratio2[-1] <- (land_data2_temp$Landings[-1]/
+                                   land_data2_temp$Landings[-nrow(land_data2_temp)])
+  
+  # hindcasting only on 2/3 of the data
+  n            <- round(nrow(land_data2_temp)*2/3, 0)
+  hind_indices <- sample(2:nrow(land_data2_temp), n)
+  fore         <- which(!seq(1:nrow(land_data2_temp)) %in% hind_indices)
+
+  epsilon[i,]$fore_points <- paste(fore, collapse = ",")
+  
+  if (class(try(coefficients(nls((ratio)~(ratio2)^a, start = list(a=1), 
+                                 data = land_data2_temp[hind_indices,])),
+                                 silent = TRUE)) != "try-error") {
+    epsilon[i,]$epsilon <- round(coefficients(nls((ratio)~(ratio2)^a, 
+                                                  start = list(a=1), 
+                                                  data = land_data2_temp[hind_indices,]), silent = TRUE), 5)
+  } else {
+    epsilon[i,]$epsilon <- NA  
+  }
+}
+
+write.table(epsilon, file.path(wd.out, "Price_model3.csv"),
+            sep = ";", row.names = F)
+
+# Model 4 #
+epsilon             <- data.frame(epsilon = matrix(ncol=1, nrow=length(strata)))
+epsilon$FS          <- ""
+epsilon$SPECIES     <- species
+epsilon$MODEL       <- 4
+epsilon$fore_points <- 0
+
+for (i in c(1:length(strata))) {
+  epsilon$FS[i] <- strata[i]
+  
+  land_data2_temp           <- land_data2[land_data2$FS==strata[i],]
+  land_data2_temp$ratio     <- 0
+  land_data2_temp$ratio[-1] <- land_data2_temp$price[-1]/
+    land_data2_temp$price[nrow(land_data2_temp)]
+  land_data2_temp$Ton       <- land_data2_temp$Landings
+  #land_data2_temp$ratio2=999
+  #land_data2_temp$ratio2[-1]=(land_data2_temp$Ton[-1]/
+  land_data2_temp$Ton[-nrow(land_data2_temp)])
+  
+  # hindcasting only on 2/3 of the data
+  n            <- round(nrow(land_data2_temp)*2/3, 0)
+  hind_indices <- sample(2:nrow(land_data2_temp), n)
+  fore         <- which(!seq(1:nrow(land_data2_temp)) %in% hind_indices)
+
+  epsilon[i,]$fore_points <- paste(fore, collapse = ",")
+  
+  if (class(try(coefficients(nls((ratio)~exp(a*Ton), 
+                                 start = list(a=1), 
+                                 data = land_data2_temp[hind_indices,])),
+                silent = TRUE)) != "try-error") {
+    epsilon[i,]$epsilon <- round(coefficients(nls((ratio)~exp(a*Landings), 
+                                                  start = list(a=1), 
+                                                  data = land_data2_temp[hind_indices,])), 5)
+  } else {
+    epsilon[i,]$epsilon <- NA  
+  }
+}
+
+write.table(epsilon, file.path(wd.out, "Price_model4.csv"),
+            sep = ";", row.names = F)
+
+# Model 5 #
+epsilon             <- data.frame(epsilon = matrix(ncol=1, nrow=length(strata)))
+epsilon$FS          <- ""
+epsilon$SPECIES     <- species
+epsilon$MODEL       <- 5
+epsilon$fore_points <- 0
+
+for (i in c(1:length(strata))) {
+  epsilon$FS[i] <- strata[i]
+  
+  land_data2_temp <- land_data2[land_data2$FS==strata[i],]
+  #land_data2_temp$ratio[-1]=land_data2_temp$price[-1]/land_data2_temp$price[nrow(land_data2_temp)]
+  #land_data2_temp$Ton <- land_data2_temp$Landings
+  #land_data2_temp$ratio2=999
+  #land_data2_temp$ratio2[-1]=(land_data2_temp$Ton[-1]/land_data2_temp$Ton[-nrow(land_data2_temp)])
+  
+  # hindcasting only on 2/3 of the data
+  n            <- round(nrow(land_data2_temp)*2/3, 0)
+  hind_indices <- sample(2:nrow(land_data2_temp), n)
+  fore         <- which(!seq(1:nrow(land_data2_temp)) %in% hind_indices)
+
+  epsilon[i,]$fore_points <- paste(fore, collapse = ",")
+  epsilon[i,]$epsilon     <- mean(land_data2_temp$price[hind_indices])  
+}
+
+write.table(epsilon, file.path(wd.out, "Price_model5.csv"),
+            sep = ";", row.names = F)
+
+# Model 6 #
+# In FLBEIA the price is estimated by age. To be checked with AZTI
+epsilon             <- data.frame(epsilon = matrix(ncol=1, nrow=length(strata)))
+epsilon$FS          <- ""
+epsilon$SPECIES     <- species
+epsilon$MODEL       <- 6
+epsilon$fore_points <- 0
+
+for (i in c(1:length(strata))) {
+  epsilon$FS[i] <- strata[i]
+  
+  land_data2_temp            <- land_data2[land_data2$FS==strata[i],]
+  land_data2_temp$ratio      <- 0
+  land_data2_temp$ratio[-1]  <- land_data2_temp$price[-1]/land_data2_temp$price[1]
+  land_data2_temp$Ton        <- land_data2_temp$Landings
+  land_data2_temp$ratio2     <- 999
+  land_data2_temp$ratio2[-1] <- (land_data2_temp$Ton[1]/land_data2_temp$Ton[-1])
+  
+  # hindcasting only on 2/3 of the data
+  n            <- round(nrow(land_data2_temp)*2/3, 0)
+  hind_indices <- sample(2:nrow(land_data2_temp), n)
+  fore         <- which(!seq(1:nrow(land_data2_temp)) %in% hind_indices)
+
+  epsilon[i,]$fore_points <- paste(fore, collapse = ",")
+  
+  if (class(try(coefficients(nls((ratio)~(ratio2)^a, start = list(a=1), data = land_data2_temp[hind_indices,])),
+                silent = TRUE)) != "try-error") {
+    epsilon[i,]$epsilon <- round(coefficients(nls((ratio)~(ratio2)^a, start = list(a=1), data = land_data2_temp[hind_indices,])), 5)
+  } else {
+    epsilon[i,]$epsilon <- NA  
+  }
+}
+
+write.table(epsilon, file.path(wd.out, "Price_model6.csv"),
+            sep = ";", row.names = F)
+
+# Binding the model results
+results <- list.files(path = wd.out,
+                      pattern = "(model)",
+                      full.names = TRUE)
+
+data_ <- read.table(results[1], sep = ";", header = T) 
+
+for (r in 2:length(results)) {
+  data2 <- read.table(results[r], sep = ";", header = T) 
+  data_ <- rbind(data_, data2) 
+}
+```
+
+PLOT PRICE MODEL
+
+```{r, eval=FALSE, echo=TRUE, fold=TRUE}
+# data_ <- read.table(file.path(wd.out.sp, "Coefficientes.csv"),
+#                     sep = ";")
+data_$RMSE   <- 0
+data_$points <- 0
+
+# Dataframe to save model fittings
+land_data2_tempp            <- land_data2[1,]
+land_data2_tempp$price_Mod1 <- 0
+#land_data2_tempp$price_Mod2=0
+land_data2_tempp$price_Mod3 <- 0
+land_data2_tempp$price_Mod4 <- 0
+land_data2_tempp$price_Mod5 <- 0
+land_data2_tempp$price_Mod6 <- 0
+# r=1
+
+for (r in 1:length(strata)) {
+  # Observed
+  land_data2_temp <- land_data2[land_data2$FS==strata[r],]  
+  
+  if (nrow(land_data2_temp)>2) {
+    data_[data_$FS==strata[r],]$points <- nrow(land_data2_temp)
+    
+    jpeg(paste(wd.out, "/graph", r, ".jpg", sep = ""),
+         units = "cm", width = 35, height = 20, res = 400)
+
+    plot(land_data2_temp$Year, land_data2_temp$price, 
+         ylab="Price/kg (euro)", xlab = "Year",
+         main = strata[r],
+         ylim = c(0,1.5*max(land_data2_temp$price)),
+         col="dark grey",
+         pch = 19, 
+         cex = 1.5, cex.main = 1.5, cex.axis = 1.5, cex.lab = 1.3)  
+    
+    # Model 1 #
+    data_temp <- data_[data_$MODEL==1 & data_$FS==strata[r],] 
+    
+    land_data2_temp$price_Mod1     <- 0
+    # land_data2_temp$price_Mod1[-1] <- round(land_data2_temp$price[-nrow(land_data2_temp)]*(1+data_temp$epsilon*(land_data2_temp$Landings[-1]-land_data2_temp$Landings[-nrow(land_data2_temp)])/land_data2_temp$Landings[-1]), 5)
+    # Ane mod.: equation for model 1
+    land_data2_temp$price_Mod1[-1] <- round(land_data2_temp$price[-nrow(land_data2_temp)]*(1+data_temp$epsilon*(land_data2_temp$Landings[-1]-land_data2_temp$Landings[-nrow(land_data2_temp)])/land_data2_temp$Landings[-nrow(land_data2_temp)]), 5)
+    land_data2_temp$price_Mod1[1]  <- NA
+    
+    lines(land_data2_temp$Year, land_data2_temp$price_Mod1,
+          col = "green",
+          lwd = 4)  
+    
+    # RMSE to be estimated on the forecast points
+    fore                                              <- as.numeric(str_split(data_[data_$MODEL==1 & data_$FS==strata[r],]$fore_points, ",")[[1]])
+    data_[data_$MODEL==1 & data_$FS==strata[r],]$RMSE <- round(sqrt(sum((land_data2_temp$price[fore]-land_data2_temp$price_Mod1[fore])^2, na.rm = TRUE)/(length(land_data2_temp$price[fore])+1)), 5) 
+
+    # Model 2 #
+    
+    # Model 3 #
+    data_temp <- data_[data_$MODEL==3 & data_$FS==strata[r],] 
+    
+    land_data2_temp$price_Mod3     <- 0
+    land_data2_temp$price_Mod3[-1] <- round(land_data2_temp$price[-nrow(land_data2_temp)]*(land_data2_temp$Landings[-1]/land_data2_temp$Landings[-nrow(land_data2_temp)])^data_temp$epsilon, 5)
+    land_data2_temp$price_Mod3[1]  <- NA
+    
+    lines(land_data2_temp$Year, land_data2_temp$price_Mod3,
+          col = "blue",
+          lwd = 4)  
+    
+    # RMSE to be estimated on the forecast points
+    # fore                                            <- as.numeric(str_split(data_[data_$MODEL==1 & data_$FS==strata[r],]$fore_points, ",")[[1]])
+    # Ane mod.: select fore_points from MODEL==3
+    fore                                              <- as.numeric(str_split(data_[data_$MODEL==3 & data_$FS==strata[r],]$fore_points, ",")[[1]])
+    data_[data_$MODEL==3 & data_$FS==strata[r],]$RMSE <- round(sqrt(sum((land_data2_temp$price[fore]-land_data2_temp$price_Mod3[fore])^2, na.rm = TRUE)/(length(land_data2_temp$price[fore])+1)), 5) 
+
+    # Model 4 #
+    data_temp <- data_[data_$MODEL==4 & data_$FS==strata[r],] 
+    
+    land_data2_temp$price_Mod4     <- 0
+    land_data2_temp$price_Mod4[-1] <- round(land_data2_temp$price[nrow(land_data2_temp)]*exp(land_data2_temp$Landings[-1]*data_temp$epsilon), 5)
+    land_data2_temp$price_Mod4[1]  <- NA
+    
+    lines(land_data2_temp$Year, land_data2_temp$price_Mod4, 
+          col = "orange",
+          lwd = 4)  
+    
+    # RMSE to be estimated on the forecast points
+    # fore                                            <- as.numeric(str_split(data_[data_$MODEL==1 & data_$FS==strata[r],]$fore_points, ",")[[1]])
+    # Ane mod.: select fore_points from MODEL==4
+    fore                                              <- as.numeric(str_split(data_[data_$MODEL==4 & data_$FS==strata[r],]$fore_points, ",")[[1]])
+    data_[data_$MODEL==4 & data_$FS==strata[r],]$RMSE <- round(sqrt(sum((land_data2_temp$price[fore]-land_data2_temp$price_Mod4[fore])^2, na.rm = TRUE)/(length(land_data2_temp$price[fore])+1)), 5) 
+
+    # Model 5 #
+    data_temp <- data_[data_$MODEL==5 & data_$FS==strata[r],]
+    
+    land_data2_temp$price_Mod5 <- data_temp$epsilon
+    #land_data2_temp$price_Mod3[-1]=land_data2_temp$price[-nrow(land_data2_temp)]*(land_data2_temp$Ton[-1]/land_data2_temp$Ton[-nrow(land_data2_temp)])^data_temp$epsilon
+    #land_data2_temp$price_Mod3[1]=NA
+    
+    lines(land_data2_temp$Year, land_data2_temp$price_Mod5,
+          col = "black",
+          lwd = 3,
+          lty = "dotted")  
+    
+    # RMSE to be estimated on the forecast points
+    # fore                                            <- as.numeric(str_split(data_[data_$MODEL==1 & data_$FS==strata[r],]$fore_points, ",")[[1]])
+    # Ane mod.: select fore_points from MODEL==5
+    fore                                              <- as.numeric(str_split(data_[data_$MODEL==5 & data_$FS==strata[r],]$fore_points, ",")[[1]])
+    data_[data_$MODEL==5 & data_$FS==strata[r],]$RMSE <- round(sqrt(sum((land_data2_temp$price[fore]-land_data2_temp$price_Mod5[fore])^2, na.rm = TRUE)/(length(land_data2_temp$price[fore])+1)), 5) 
+
+    # Model 6 #
+    data_temp <- data_[data_$MODEL==6 & data_$FS==strata[r],] 
+    
+    land_data2_temp$price_Mod6     <- 0
+    land_data2_temp$price_Mod6[-1] <- round(land_data2_temp$price[1]*(land_data2_temp$Landings[1]/land_data2_temp$Landings[-1])^data_temp$epsilon, 5)
+    land_data2_temp$price_Mod6[1]  <- NA
+    
+    lines(land_data2_temp$Year, land_data2_temp$price_Mod6,
+          col = "turquoise",
+          lwd = 4)  
+    
+    # RMSE to be estimated on the forecast points
+    # fore                                            <- as.numeric(str_split(data_[data_$MODEL==1 & data_$FS==strata[r],]$fore_points, ",")[[1]])
+    # Ane mod.: select fore_points from MODEL==6
+    fore                                              <- as.numeric(str_split(data_[data_$MODEL==6 & data_$FS==strata[r],]$fore_points, ",")[[1]])
+    data_[data_$MODEL==6 & data_$FS==strata[r],]$RMSE <- round(sqrt(sum((land_data2_temp$price[fore]-land_data2_temp$price_Mod6[fore])^2, na.rm = TRUE)/(length(land_data2_temp$price[fore])+1)), 5) 
+
+    legend("topleft",
+           c("Observed", "Model1", "Model3", "Model4", "Model5", "Model6"),
+           col = c("dark grey", "green", "blue", "orange", "black", "turquoise"),
+           pch = c(19, NA, NA, NA, NA, NA),
+           lty = c(NA, "solid", "solid", "solid", "dotted", "solid"),
+           lwd = c(NA, 4, 4, 4, 3, 4))
+    
+    land_data2_tempp <- rbind(land_data2_tempp, land_data2_temp)
+    
+    # dev.off()
+    graphics.off()
+  } # end if statement
+}
+
+write.table(land_data2_tempp[-1,], file.path(wd.out, "Price_fittings.csv"),
+            sep = ";", row.names = F)
+
+data_ <- data_[data_$RMSE!=0,]
+write.table(data_, file.path(wd.out, "Fit_RMSE.csv"),
+            dec = ".", sep = ";", row.names = F)
+
+data_best_fit <- data_ %>% 
+  group_by(FS) %>% slice(which.min(RMSE))
+write.table(data_best_fit, file.path(wd.out, "Best_fit_RMSE.csv"),
+            dec = ".", sep = ";", row.names = F)
+
+```
+
+FIT THE MODEL FOR EACH FLEET SEGMENT
+
+```{r, eval=FALSE, echo=TRUE, fold=TRUE}
+# create folder to save model fittings
+# dir.create("FishPrice")
+wd.out <- paste("Fish_Price/", species, "/Fit_model", sep = "")
+# dir.create(wd.out) # run first time
+
+## calculate elasticity coefficients 
+# hindcasting only on 2/3 of the data -> for RMSE but the final model all the data
+strata <- unique(land_data2$FS)
+
+# Model 1 #
+# i=1
+epsilon             <- data.frame(epsilon = matrix(ncol=1, nrow=length(strata)))
+epsilon$FS          <- ""
+epsilon$SPECIES     <- species
+epsilon$MODEL       <- 1
+# epsilon$fore_points <- 0
+
+for (i in c(1:length(strata))) {
+  # for (i in c(1:16)){
+  epsilon$FS[i] <- strata[i]
+  
+  land_data2_temp            <- land_data2[land_data2$FS==strata[i],]
+  land_data2_temp$ratio      <- 0
+  land_data2_temp$ratio[-1]  <- land_data2_temp$price[-1]/land_data2_temp$price[-nrow(land_data2_temp)]
+  land_data2_temp$ratio2     <- 999
+  land_data2_temp$ratio2[-1] <- (land_data2_temp$Landings[-1]-land_data2_temp$Landings[-nrow(land_data2_temp)])/land_data2_temp$Landings[-1]
+  
+  # # hindcasting only on 2/3 of the data 
+  # n            <- round(nrow(land_data2_temp)*2/3, 0)
+  # hind_indices <- sample(2:nrow(land_data2_temp), n)
+  # fore         <- which(!seq(1:nrow(land_data2_temp)) %in% hind_indices)
+  hind_indices <- 2:nrow(land_data2_temp)
+  
+  # epsilon[i,]$fore_points <- paste(fore, collapse = ",")
+  
+  if(nrow(land_data2_temp)>5) {
+    epsilon[i,]$epsilon <- round(coefficients(lm((ratio-1)~ratio2+0, data = land_data2_temp[hind_indices,])), 5)
+  }
+}
+
+write.table(epsilon, file.path(wd.out, "Price_model1.csv"),
+            sep = ";", row.names = F)
+
+# Model 2 #
+
+# Model 3 #
+# i=1
+epsilon             <- data.frame(epsilon = matrix(ncol=1, nrow=length(strata)))
+epsilon$FS          <- ""
+epsilon$SPECIES     <- species
+epsilon$MODEL       <- 3
+# epsilon$fore_points <- 0
+
+for (i in c(1:length(strata))) {
+  epsilon$FS[i] <- strata[i]
+  
+  land_data2_temp            <- land_data2[land_data2$FS==strata[i],]
+  land_data2_temp$ratio      <- 0
+  land_data2_temp$ratio[-1]  <- land_data2_temp$price[-1]/land_data2_temp$price[-nrow(land_data2_temp)]
+  land_data2_temp$ratio2     <- 999
+  land_data2_temp$ratio2[-1] <- (land_data2_temp$Landings[-1]/land_data2_temp$Landings[-nrow(land_data2_temp)])
+  
+  # # hindcasting only on 2/3 of the data
+  # n            <- round(nrow(land_data2_temp)*2/3, 0)
+  # hind_indices <- sample(2:nrow(land_data2_temp), n)
+  # fore         <- which(!seq(1:nrow(land_data2_temp)) %in% hind_indices)
+  hind_indices <- 2:nrow(land_data2_temp)
+  
+  # epsilon[i,]$fore_points <- paste(fore, collapse = ",")
+  
+  if (class(try(coefficients(nls((ratio)~(ratio2)^a, start = list(a=1), data = land_data2_temp[hind_indices,])),
+                silent = TRUE)) != "try-error") {
+    epsilon[i,]$epsilon <- round(coefficients(nls((ratio)~(ratio2)^a, start = list(a=1), data = land_data2_temp[hind_indices,]), silent = TRUE), 5)
+  } else {
+    epsilon[i,]$epsilon <- NA  
+  }
+}
+
+write.table(epsilon, file.path(wd.out, "Price_model3.csv"),
+            sep = ";", row.names = F)
+
+# Model 4 #
+epsilon             <- data.frame(epsilon = matrix(ncol=1, nrow=length(strata)))
+epsilon$FS          <- ""
+epsilon$SPECIES     <- species
+epsilon$MODEL       <- 4
+# epsilon$fore_points <- 0
+
+for (i in c(1:length(strata))) {
+  epsilon$FS[i] <- strata[i]
+  
+  land_data2_temp           <- land_data2[land_data2$FS==strata[i],]
+  land_data2_temp$ratio     <- 0
+  land_data2_temp$ratio[-1] <- land_data2_temp$price[-1]/land_data2_temp$price[nrow(land_data2_temp)]
+  land_data2_temp$Ton       <- land_data2_temp$Landings
+  #land_data2_temp$ratio2=999
+  #land_data2_temp$ratio2[-1]=(land_data2_temp$Ton[-1]/land_data2_temp$Ton[-nrow(land_data2_temp)])
+  
+  # # hindcasting only on 2/3 of the data
+  # n            <- round(nrow(land_data2_temp)*2/3, 0)
+  # hind_indices <- sample(2:nrow(land_data2_temp), n)
+  # fore         <- which(!seq(1:nrow(land_data2_temp)) %in% hind_indices)
+  hind_indices <- 2:nrow(land_data2_temp)
+  
+  # epsilon[i,]$fore_points <- paste(fore, collapse = ",")
+  
+  if (class(try(coefficients(nls((ratio)~exp(a*Ton), start = list(a=1), data = land_data2_temp[hind_indices,])),
+                silent = TRUE)) != "try-error") {
+    epsilon[i,]$epsilon <- round(coefficients(nls((ratio)~exp(a*Landings), start = list(a=1), data = land_data2_temp[hind_indices,])), 5)
+  } else {
+    epsilon[i,]$epsilon <- NA  
+  }
+}
+
+write.table(epsilon, file.path(wd.out, "Price_model4.csv"),
+            sep = ";", row.names = F)
+
+# Model 5 #
+epsilon             <- data.frame(epsilon = matrix(ncol=1, nrow=length(strata)))
+epsilon$FS          <- ""
+epsilon$SPECIES     <- species
+epsilon$MODEL       <- 5
+# epsilon$fore_points <- 0
+
+for (i in c(1:length(strata))) {
+  epsilon$FS[i] <- strata[i]
+  
+  land_data2_temp <- land_data2[land_data2$FS==strata[i],]
+  #land_data2_temp$ratio[-1]=land_data2_temp$price[-1]/land_data2_temp$price[nrow(land_data2_temp)]
+  #land_data2_temp$Ton <- land_data2_temp$Landings
+  #land_data2_temp$ratio2=999
+  #land_data2_temp$ratio2[-1]=(land_data2_temp$Ton[-1]/land_data2_temp$Ton[-nrow(land_data2_temp)])
+  
+  # # hindcasting only on 2/3 of the data
+  # n            <- round(nrow(land_data2_temp)*2/3, 0)
+  # hind_indices <- sample(2:nrow(land_data2_temp), n)
+  # fore         <- which(!seq(1:nrow(land_data2_temp)) %in% hind_indices)
+  hind_indices <- 2:nrow(land_data2_temp)
+  
+  # epsilon[i,]$fore_points <- paste(fore, collapse = ",")
+  epsilon[i,]$epsilon     <- mean(land_data2_temp$price[hind_indices])  
+}
+
+write.table(epsilon, file.path(wd.out, "Price_model5.csv"),
+            sep = ";", row.names = F)
+
+# Model 6 #
+# In FLBEIA the price is estimated by age. To be checked with AZTI
+epsilon             <- data.frame(epsilon = matrix(ncol=1, nrow=length(strata)))
+epsilon$FS          <- ""
+epsilon$SPECIES     <- species
+epsilon$MODEL       <- 6
+# epsilon$fore_points <- 0
+
+for (i in c(1:length(strata))) {
+  epsilon$FS[i] <- strata[i]
+  
+  land_data2_temp            <- land_data2[land_data2$FS==strata[i],]
+  land_data2_temp$ratio      <- 0
+  land_data2_temp$ratio[-1]  <- land_data2_temp$price[-1]/land_data2_temp$price[1]
+  land_data2_temp$Ton        <- land_data2_temp$Landings
+  land_data2_temp$ratio2     <- 999
+  land_data2_temp$ratio2[-1] <- (land_data2_temp$Ton[1]/land_data2_temp$Ton[-1])
+  
+  # # hindcasting only on 2/3 of the data
+  # n            <- round(nrow(land_data2_temp)*2/3, 0)
+  # hind_indices <- sample(2:nrow(land_data2_temp), n)
+  # fore         <- which(!seq(1:nrow(land_data2_temp)) %in% hind_indices)
+  hind_indices <- 2:nrow(land_data2_temp)
+  
+  # epsilon[i,]$fore_points <- paste(fore, collapse = ",")
+  
+  if (class(try(coefficients(nls((ratio)~(ratio2)^a, start = list(a=1), data = land_data2_temp[hind_indices,])),
+                silent = TRUE)) != "try-error") {
+    epsilon[i,]$epsilon <- round(coefficients(nls((ratio)~(ratio2)^a, start = list(a=1), data = land_data2_temp[hind_indices,])), 5)
+  } else {
+    epsilon[i,]$epsilon <- NA  
+  }
+}
+
+write.table(epsilon, file.path(wd.out, "Price_model6.csv"),
+            sep = ";", row.names = F)
+
+# # Binding the model results
+# results <- list.files(path = wd.out,
+#                       pattern = "(model)",
+#                       full.names = TRUE)
+# 
+# data_ <- read.table(results[1], sep = ";", header = T) 
+# 
+# for (r in 2:length(results)) {
+#   data2 <- read.table(results[r], sep = ";", header = T) 
+#   data_ <- rbind(data_, data2) 
+# }
+```
+
+## PARAMETERIZATION FOR SIMULATIONS
+
+Once the best price model is selected, then the parameterization need to be included in the model for simulations. For that, it is needed the excel file created from the previous code, that present the following columns:
+
+-   age: Age of the fish.\
+-   met: Metier.\
+-   FLBEIA type: The selected price dynamics model from the previous code.\
+-   els: The elasticity parameter.\
+-   P~0~: The base price.\
+-   P~last~: The last price of the time series.\
+-   L~0~: The reference landing.\
+
+The following code sets up the price dynamics for selected stocks (HKE) in a FLBEIA simulation. It reads price parameters from aforementioned Excel file and assigns either a fixed price or the corresponding type of elastic price model to each fleet-metier-stock combination, depending on the specified type. You should place this code before running the FLBEIA simulation, during the model setup phase, typically in the script where you define control parameters (fleets.ctrl) and initialize fleet objects (fleets). This is usually done after loading biological and economic data, and before calling FLBEIA().
+
+Important notes:\
+- Ensure that the Excel file is correctly formatted and contains the necessary columns: flnm, mtnm, stnm, type, els, P0, Plast.\
+- The units of price (that in this example are multiplied by 1000) should be in the correct scale.\
+
+```{r, eval=FALSE, echo=TRUE, fold=TRUE}
+stocks_newPrice <- c("HKE", "ANK", "MEG", "MAC")
+
+for(stknp in stocks_newPrice){
+  price_fm <-read.xlsx('./input/Price_param_stk_flt_met_clean.xlsx', sheet = stknp)
+  flq <- biols[[stknp]]@n
+  units(flq)<- " "
+
+  for(comf in 1:nrow(price_fm)){
+
+    flnm <- price_fm[comf, colnames(price_fm)== "flnm"]
+    mtnm <- price_fm[comf, colnames(price_fm)== "mtnm"]
+    stnm <- price_fm[comf, colnames(price_fm)== "stnm"]
+    type <- price_fm[comf, colnames(price_fm)== "type"]
+
+    if (type == 5){
+      fleets.ctrl.min[[flnm]][[mtnm]][[stknp]]$price.model <- "fixedPrice"
+      fleets.ctrl.prev[[flnm]][[mtnm]][[stknp]]$price.model <- "fixedPrice"
+      fleets.ctrl.fixedEff[[flnm]][[mtnm]][[stknp]]$price.model <- "fixedPrice"
+      flq.elsa <- flq
+      flq.elsa[] <- price_fm[comf, colnames(price_fm)== "els"]*1000 # in fixedPrice els is the price
+      fleets[[flnm]]@metiers[[mtnm]]@catches[[stnm]]@price <- flq.elsa[]
+    } else{
+      fleets.ctrl.min[[flnm]][[mtnm]][[stknp]]$price.model <- 'elasticPrice'
+      fleets.ctrl.prev[[flnm]][[mtnm]][[stknp]]$price.model <- 'elasticPrice'
+      fleets.ctrl.fixedEff[[flnm]][[mtnm]][[stknp]]$price.model <- 'elasticPrice'
+
+    # Parameters
+    els <- price_fm[comf, colnames(price_fm)== "els"]
+
+    P0 <- price_fm[comf, colnames(price_fm)== "P0"]*1000
+
+    Plast <- price_fm[comf, colnames(price_fm)== "Plast"]*1000
+
+    La <- fleets[[flnm]]@metiers[[mtnm]]@catches[[stnm]]@landings.n * fleets[[flnm]]@metiers[[mtnm]]@catches[[stnm]]@landings.wt
+    La[is.na(La)] <- 0
+    row_sums_La <- quantSums(La) # identify years with no landing data
+    filtered_La <- La[,row_sums_La != 0,,,,] # Remove years with no landing data
+    La0 <- filtered_La[, min(dimnames(filtered_La)$year)] # take the first landing year =! 0
+
+    # Format
+    flq.elsa <- flq.La0 <- flq.Pa0 <- flq.Plast <- flq
+
+    flq.elsa[] <- els
+    flq.Pa0[]  <- P0
+    flq.La0[]  <- La0
+    flq.Plast[]  <- Plast
+
+    fleets[[flnm]]@metiers[[mtnm]]@catches[[stnm]]@price <- flq.Plast
+
+    fleets.ctrl.prev[[flnm]][[mtnm]][[stnm]][['type']]   <- type
+    fleets.ctrl.min[[flnm]][[mtnm]][[stnm]][['pd.elsa']] <- flq.elsa
+    fleets.ctrl.min[[flnm]][[mtnm]][[stnm]][['pd.La0']] <- flq.La0
+    fleets.ctrl.min[[flnm]][[mtnm]][[stnm]][['pd.Pa0']] <- flq.Pa0
+    fleets.ctrl.min[[flnm]][[mtnm]][[stnm]][['type']]   <- type
+    fleets.ctrl.min[[flnm]][[mtnm]][[stnm]][['pd.total']] <- FALSE
+    }
+  }
+}
+```
+
+## REFERENCES
+
+*Salz, Pavel & Buisman, Erik & Frost, Hans & Accadia, Paolo & Prellezo, Raúl & Soma, Katrine. (2011). FISHRENT; Bio-Economic simulation and optimisation model for fisheries*.
+
+*Kraak. 2004. An evaluation of MTAC – a program for the calculation of catch forecasts taking the mixed nature of the fisheries into account. Working Document at the ICES Working Group on Methods of Fish Stock Assessments, Lisbon, Portugal, 11-18 February 2004, ICES CM 2004/D:03.*
