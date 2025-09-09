@@ -1,7 +1,9 @@
 ---
 title: "SEAwise – Fish price & Variable costs"
-author: "Isabella Bitetto (Fondazione COISPA)"
-
+author: "Isabella Bitetto (Fondazione COISPA), Vassiliki Sgardeli (HCMR) and Bernhard Kuehn (Thuenen)"
+editor: 
+  markdown: 
+    wrap: 72
 ---
 
 ```{r, echo=FALSE}
@@ -10,6 +12,7 @@ cat(sprintf("Compiled on %s\n\n", format(Sys.time(), '%d/%m/%Y, %H:%M')))
 
 <!-- Logo in the title -->
 
+```{=html}
 <style>
 /* Make the title line a flex row with the logo on the left */
 .title-with-logo {
@@ -24,7 +27,9 @@ cat(sprintf("Compiled on %s\n\n", format(Sys.time(), '%d/%m/%Y, %H:%M')))
   height: auto;
 }
 </style>
+```
 
+```{=html}
 <script>
 // Wrap the H1.title with a container and prepend the logo to its left
 document.addEventListener("DOMContentLoaded", function(){
@@ -47,49 +52,93 @@ document.addEventListener("DOMContentLoaded", function(){
   wrap.appendChild(h1);
 });
 </script>
+```
 
 <!-- Links -->
 
-<div id="header-links">
-  <a href="https://seawiseproject.org/" target="_blank">
-    <img src="seawise_logo_fullcolour.png" width="20"  height="22" style="margin-right:6px; vertical-align:middle;">
-    SEAwise Website
-  </a>
-  <a href=https://github.com/ices-tools-dev/SEAwise" target="_blank">
-    <img src="github.svg" width="20" height="22" style="margin-right:6px; vertical-align:middle;">
-    SEAwise Github
-  </a>
-</div>
+::: {#header-links}
+<a href="https://seawiseproject.org/" target="_blank">
+<img src="seawise_logo_fullcolour.png" width="20" height="22" style="margin-right:6px; vertical-align:middle;"/>
+SEAwise Website </a>
+<a href=https://github.com/ices-tools-dev/SEAwise" target="_blank">
+<img src="github.svg" width="20" height="22" style="margin-right:6px; vertical-align:middle;"/>
+SEAwise Github </a>
+:::
 
 <!-- start of the script -->
 
-## Introduction{.tabset} 
+## Introduction {.tabset}
 
-This tutorial is based on the work carried out in SEAwise – Work Package 2: Social and economic effects of and on fishing.
+This tutorial is based on the work carried out in SEAwise – Work Package
+2: Social and economic effects of and on fishing.
 
-Within SEAwise (seawiseproject.org), the socio-economic impacts of a set of management measures were investigated and quantified using bio-economic modelling. The project developed methodologies to strengthen the economic sub-models integrated into bio-economic models for Ecosystem-Based Fisheries Management (EBFM), improving the configuration of the economic component through more realistic fleet performance projections ([Enhancing Fish price in FLBEIA](https://fundacion-azti.github.io/FLBEIA_SEAWISE_WP2/) and  [Enhanced fish price & fuel costs submodels](https://coispa.github.io/Fish-price-and-variable-costs/Enhanced_fishprice_fuelcosts_submodels.html).
+Within SEAwise (seawiseproject.org), the socio-economic impacts of a set
+of management measures were investigated and quantified using
+bio-economic modelling. The project developed methodologies to
+strengthen the economic sub-models integrated into bio-economic models
+for Ecosystem-Based Fisheries Management (EBFM), improving the
+configuration of the economic component through more realistic fleet
+performance projections ([Enhancing Fish price in
+FLBEIA](https://fundacion-azti.github.io/FLBEIA_SEAWISE_WP2/) and
+[Enhanced fish price & fuel costs
+submodels](https://coispa.github.io/Fish-price-and-variable-costs/Enhanced_fishprice_fuelcosts_submodels.html).
 
-In SEAwise Deliverables 2.3 [SEAwise report on carbon footprint, economic and social impacts](https://data.dtu.dk/articles/online_resource/SEAwise_report_on_Carbon_footprint_economic_and_social_impacts_of_revised_management_strategies/28079393) and 2.4 [SEAwise report on carbon footprint and impacts in a changing climate](https://data.dtu.dk/articles/online_resource/SEAwise_Report_on_Carbon_footprint_economic_and_social_impacts_of_revised_management_strategies_in_a_changing_climate_based_on_information_from_full_MSEs/29194667)), a set of integrated socio-economic and management scenarios were developed to assess the impacts of fisheries management strategies under changing environmental and market conditions. 
+In SEAwise Deliverables 2.3 [SEAwise report on carbon footprint,
+economic and social
+impacts](https://data.dtu.dk/articles/online_resource/SEAwise_report_on_Carbon_footprint_economic_and_social_impacts_of_revised_management_strategies/28079393)
+and 2.4 [SEAwise report on carbon footprint and impacts in a changing
+climate](https://data.dtu.dk/articles/online_resource/SEAwise_Report_on_Carbon_footprint_economic_and_social_impacts_of_revised_management_strategies_in_a_changing_climate_based_on_information_from_full_MSEs/29194667)),
+a set of integrated socio-economic and management scenarios were
+developed to assess the impacts of fisheries management strategies under
+changing environmental and market conditions.
 
 ## Socio-economic scenarios
 
-Four socio-economic scenarios, adapted from the CERES project (https://ceresproject.eu/), were explored:
+Four socio-economic scenarios, adapted from the CERES project
+(https://ceresproject.eu/), were explored:
 
-* **Global Sustainability (GS) (RCP4.5, SSP1):** global sustainability is prioritized, aiming to limit climate change to the lower RCP4.5 target while striving to promote welfare by balancing economic, social, and environmental considerations, supported by strong trans-boundary cooperation. Key factors such as a smaller global population, improved fish stock management, cheaper sources of fish meal and oil for aquaculture, and increased competition between farmed and wild fish contribute to a more moderate rise in fish prices compared to other scenarios. 
- 	
-* **National Enterprise (NE) (RCP8.5, SSP3):** governments prioritize national interests, focusing on maximizing welfare and employment within the fishing industry, but with reduced trans-national cooperation. Fish prices remain high to support national wellbeing and due to an increase in per capita consumption. Global warming is expected to follow the RCP8.5 trajectory, driven by limited technological innovation and a heavy reliance on fossil fuels, resulting in a significant rise in fuel prices.
- 	
-* **Local Stewardship (LS) (RCP4.5, SSP2):** this scenario envisions a path where sustainability is pursued through small-scale regional efforts, emphasizing equity, social inclusion, and democratic values.
+-   **Global Sustainability (GS) (RCP4.5, SSP1):** global sustainability
+    is prioritized, aiming to limit climate change to the lower RCP4.5
+    target while striving to promote welfare by balancing economic,
+    social, and environmental considerations, supported by strong
+    trans-boundary cooperation. Key factors such as a smaller global
+    population, improved fish stock management, cheaper sources of fish
+    meal and oil for aquaculture, and increased competition between
+    farmed and wild fish contribute to a more moderate rise in fish
+    prices compared to other scenarios.
 
-* **World Markets (WM) (RCP8.5, SSP5):** this scenario is defined by strong demand for affordable seafood (with a moderate rise in fish prices), increased technological innovation driven by global competition, lower taxes, and a robust private sector. While global warming follows the RCP8.5 pathway, the increase in fuel prices is slower than in the "National Enterprise" scenario, due to greater technological advancements.
+-   **National Enterprise (NE) (RCP8.5, SSP3):** governments prioritize
+    national interests, focusing on maximizing welfare and employment
+    within the fishing industry, but with reduced trans-national
+    cooperation. Fish prices remain high to support national wellbeing
+    and due to an increase in per capita consumption. Global warming is
+    expected to follow the RCP8.5 trajectory, driven by limited
+    technological innovation and a heavy reliance on fossil fuels,
+    resulting in a significant rise in fuel prices.
 
-These scenarios combined different pathways of climate change (RCP4.5 and RCP8.5) with varying trajectories for fish and fuel prices, reflecting political, economic, social, and technological factors influencing the fisheries sector.
+-   **Local Stewardship (LS) (RCP4.5, SSP2):** this scenario envisions a
+    path where sustainability is pursued through small-scale regional
+    efforts, emphasizing equity, social inclusion, and democratic
+    values.
 
+-   **World Markets (WM) (RCP8.5, SSP5):** this scenario is defined by
+    strong demand for affordable seafood (with a moderate rise in fish
+    prices), increased technological innovation driven by global
+    competition, lower taxes, and a robust private sector. While global
+    warming follows the RCP8.5 pathway, the increase in fuel prices is
+    slower than in the "National Enterprise" scenario, due to greater
+    technological advancements.
+
+These scenarios combined different pathways of climate change (RCP4.5
+and RCP8.5) with varying trajectories for fish and fuel prices,
+reflecting political, economic, social, and technological factors
+influencing the fisheries sector.
 
 <p align="center">
-  <img src="ceres.png" width="70%">
-</p>
 
+<img src="ceres.png" width="70%"/>
+
+</p>
 
 ```{r, echo=FALSE, results='asis', message=FALSE}
 
@@ -103,7 +152,10 @@ Figure 1 - Socio-political scenarios elaborated for European fisheries in CERES 
 
 ```
 
-Each socio-economic scenario corresponds to a combination of fish and fuel price increase. Annual rates of fuel and fish price increase corresponding to the four scenarios summarized in Figure 1 (CERES scenarios) are reported in Table 1.
+Each socio-economic scenario corresponds to a combination of fish and
+fuel price increase. Annual rates of fuel and fish price increase
+corresponding to the four scenarios summarized in Figure 1 (CERES
+scenarios) are reported in Table 1.
 
 ```{r, echo=FALSE}
 
@@ -130,15 +182,19 @@ kable(df, align = c("l","l")) %>%
 
 ```
 
-This document presents three examples of how the socio-economic scenarios can be implemented in bio-economic models (FLBEIA and BEMTOOL): 
+This document presents three examples of how the socio-economic
+scenarios can be implemented in bio-economic models (FLBEIA and
+BEMTOOL):
 
- - dummy dataset;
- - North Sea;
- - Adriatic and western Ionian Sea.
- 
-## Implementing socio-economic scenarios in FLBEIA - dummy  data set
+-   dummy dataset;
+-   North Sea;
+-   Adriatic and western Ionian Sea.
 
-This example uses the FLBEIA dummy dataset and show how the four CERES scenarios can be implemented using R, integrating the increase in fish and fuel price in the projections.
+## Implementing socio-economic scenarios in FLBEIA - dummy data set
+
+This example uses the FLBEIA dummy dataset and show how the four CERES
+scenarios can be implemented using R, integrating the increase in fish
+and fuel price in the projections.
 
 ```{r FLBEIA, echo=TRUE}
 #install.packages(c("ggplot2", "Matrix", "nloptr", "mvtnorm", "triangle", "XLConnect"))
@@ -163,7 +219,8 @@ i2  <- yrs['last.yr'] - yrs['first.yr'] + 1  # position of last yr in objects
  
 ```
 
-As a first step, we need to define tables with annual change rates in fish and fuel prices, following the scenarios described above. 
+As a first step, we need to define tables with annual change rates in
+fish and fuel prices, following the scenarios described above.
 
 ```{r FLBEIA2, echo=TRUE}
 
@@ -183,8 +240,8 @@ fuel_price
 
 ```
 
-Then we need to specify the fraction of Variable costs corresponding to the fuel costs by fleet-metier combination. This is case study specific.
-
+Then we need to specify the fraction of Variable costs corresponding to
+the fuel costs by fleet-metier combination. This is case study specific.
 
 ```{r FLBEIA3, echo=TRUE}
 
@@ -195,7 +252,8 @@ fuelcost_fr
 
 ```
 
-In this example there is only 1 fleet and one metier. The script can be generalised to cover all metiers, as follows: 
+In this example there is only 1 fleet and one metier. The script can be
+generalised to cover all metiers, as follows:
 
 ```{r FLBEIA4, echo=TRUE}
 fuelcost_fr_bkp<-fuelcost_fr
@@ -207,7 +265,9 @@ fuelcost_fr
 
 ```
 
-The next step is to modify the fish prices in the fleets object before running FLBEIA. In the following example, fish prices are changed according to 'WM' scenario.
+The next step is to modify the fish prices in the fleets object before
+running FLBEIA. In the following example, fish prices are changed
+according to 'WM' scenario.
 
 ```{r FLBEIA5, echo=TRUE}
 
@@ -231,7 +291,13 @@ for (i in 1 : 12){  # repeat for all age classes
 
 ```
 
-Energy or fuel costs form a given fraction of variable costs for each fleet-metier combination. Fuel costs increase with fuel prices. The annual multiplier for fuel costs is $\mathtt{mult} = 1 + \mathtt{fuel\_price}$, where `fuel_price` is the annual rate of change. The annual change in the variable-cost multiplier due to fuel is $(\mathtt{mult} - 1)\,\mathtt{fuelcost\_fr}$, where `fuelcost_fr` is the fuel share of variable costs.
+Energy or fuel costs form a given fraction of variable costs for each
+fleet-metier combination. Fuel costs increase with fuel prices. The
+annual multiplier for fuel costs is
+$\mathtt{mult} = 1 + \mathtt{fuel\_price}$, where `fuel_price` is the
+annual rate of change. The annual change in the variable-cost multiplier
+due to fuel is $(\mathtt{mult} - 1)\,\mathtt{fuelcost\_fr}$, where
+`fuelcost_fr` is the fuel share of variable costs.
 
 ```{r FLBEIA6, echo=TRUE}
 fuelcost_fr<-fuelcost_fr_bkp
@@ -255,8 +321,7 @@ oneFl[["fl1"]]@metiers[["met1"]]@vcost[, i1:i2, , , ] <- oneFl[["fl1"]]@metiers[
 # ...
 ```
 
-Finally, we need just to run the FLBEIA model for WM scenario: 
-
+Finally, we need just to run the FLBEIA model for WM scenario:
 
 ```{r FLBEIA7, results = 'hide'}
 
@@ -276,9 +341,10 @@ WM <- FLBEIA(biols = oneBio,
               advice.ctrl = oneAdvC) 
 ```
 
-Same example of graphical output as can be extracted by the WM object follow: 
+Same example of graphical output as can be extracted by the WM object
+follow:
 
-```{r FLBEIA8, echo=TRUE} 
+```{r FLBEIA8, echo=TRUE}
 library(dplyr)
 stk <- names(WM$biols)[1]
 
@@ -297,9 +363,10 @@ ggplot(ssb_df, aes(x=as.numeric(as.character(year)), y=med)) +
 
 ```
 
-Here we have to estimate the revenues starting from the price per kg and the landing in weight: 
+Here we have to estimate the revenues starting from the price per kg and
+the landing in weight:
 
-```{r FLBEIA9, echo=TRUE} 
+```{r FLBEIA9, echo=TRUE}
 library(FLCore)
 library(dplyr)
 library(purrr)
@@ -396,9 +463,9 @@ eco_summ <- eco %>%
 
 ```
 
-Some plots at different levels of detail (e.g. metier, fleet) follow: 
+Some plots at different levels of detail (e.g. metier, fleet) follow:
 
-```{r FLBEIA10, echo=TRUE} 
+```{r FLBEIA10, echo=TRUE}
 
 p1 <- ggplot(eco_summ,
        aes(x = as.numeric(as.character(year)),
@@ -456,7 +523,6 @@ p3<- ggplot(rev_met_s, aes(x=as.numeric(as.character(year)), y=med, color=metier
 
 ```
 
-
 ```{r fig-eco-layout, fig.width=10, fig.height=8, fig.cap='Example plots.'}
 pkgs <- c("ggplot2","patchwork","cowplot")
 to_install <- setdiff(pkgs, rownames(installed.packages()))
@@ -479,78 +545,121 @@ p_comb
 
 ### Introduction
 
-The mixed fisheries model of the North Sea is defined using the procedure of WGMIXFISH-Advice 2021 and 2022. The modelling framework is FLBEIA (Garcia et al., 2017), and includes 46 fleets (152 total métiers) and 20 stocks for the North Sea mixed fisheries. Stock dynamics are either age-based (COD-NS, HAD, PLE-EC, PLE-NS, POK, SOL-NS, SOL-EC, TUR, WHG-NS, WIT), or fixed (NEP6, NEP7, NEP8, NEP9, NEP5, NEP10, NEP32, NEP33, NEP34, NEPOTH-NS) and differ whether they are actively managed via a TAC advice or, in some cases, considered as bycatch stocks.
-For this case study please refer to [Kuehn et al. (2023)](https://doi.org/10.1111/fme.12629), Deliverables 2.3 [SEAwise report on carbon footprint, economic and social impacts](https://data.dtu.dk/articles/online_resource/SEAwise_report_on_Carbon_footprint_economic_and_social_impacts_of_revised_management_strategies/28079393) and 2.4 [SEAwise report on carbon footprint and impacts in a changing climate](https://data.dtu.dk/articles/online_resource/SEAwise_Report_on_Carbon_footprint_economic_and_social_impacts_of_revised_management_strategies_in_a_changing_climate_based_on_information_from_full_MSEs/29194667)).
+The mixed fisheries model of the North Sea is defined using the
+procedure of WGMIXFISH-Advice 2021 and 2022. The modelling framework is
+FLBEIA (Garcia et al., 2017), and includes 46 fleets (152 total métiers)
+and 20 stocks for the North Sea mixed fisheries. Stock dynamics are
+either age-based (COD-NS, HAD, PLE-EC, PLE-NS, POK, SOL-NS, SOL-EC, TUR,
+WHG-NS, WIT), or fixed (NEP6, NEP7, NEP8, NEP9, NEP5, NEP10, NEP32,
+NEP33, NEP34, NEPOTH-NS) and differ whether they are actively managed
+via a TAC advice or, in some cases, considered as bycatch stocks. For
+this case study please refer to [Kuehn et al.
+(2023)](https://doi.org/10.1111/fme.12629), Deliverables 2.3 [SEAwise
+report on carbon footprint, economic and social
+impacts](https://data.dtu.dk/articles/online_resource/SEAwise_report_on_Carbon_footprint_economic_and_social_impacts_of_revised_management_strategies/28079393)
+and 2.4 [SEAwise report on carbon footprint and impacts in a changing
+climate](https://data.dtu.dk/articles/online_resource/SEAwise_Report_on_Carbon_footprint_economic_and_social_impacts_of_revised_management_strategies_in_a_changing_climate_based_on_information_from_full_MSEs/29194667)).
 
 <p align="center">
-  <img src="North_Sea_map-en.png" width="40%">
+
+<img src="North_Sea_map-en.png" width="40%"/>
+
 </p>
 
-### 1. Purpose
+### Purpose
 
 This chapter outlines how to:
 
-1) build projected multipliers for costs and prices (script **01_prepare_projCosts.R**), and  
-2) apply them to FLBEIA multi-run simulations (script **02_Add_Economic_data_to_FLBEIA_simulations.R**),  
-to produce *EMSRR economic projections* for the North Sea — without embedding internal code.
+1)  build projected multipliers for costs and prices (script
+    **01_prepare_projCosts.R**), and\
+2)  apply them to FLBEIA multi-run simulations (script
+    **02_Add_Economic_data_to_FLBEIA_simulations.R**),\
+    to produce *EMSRR economic projections* for the North Sea — without
+    embedding internal code.
 
-The script used in this chapter of the tutorial are available on SEAwise github (task 2.2), stored in the zip-file [add_price_scenarios_to_FLBEIA.zip](https://github.com/ices-tools-dev/SEAwise_T2.2/blob/main/add_price_scenarios_to_FLBEIA.zip). It contains following two scripts:
+The script used in this chapter of the tutorial are available on SEAwise
+github (task 2.2), stored in the zip-file
+[add_price_scenarios_to_FLBEIA.zip](https://github.com/ices-tools-dev/SEAwise_T2.2/blob/main/add_price_scenarios_to_FLBEIA.zip).
+It contains following two scripts:
 
-1. Data preparation: **01_prepare_projCosts.R**;
-2. Add economic data to simulations: **02_Add_Economic_data_to_FLBEIA_simulations.R**.
+1.  Data preparation: **01_prepare_projCosts.R**;
+2.  Add economic data to simulations:
+    **02_Add_Economic_data_to_FLBEIA_simulations.R**.
 
-In the following we just want to go through the main-steps with you, highlighting how to add additional information originating from economic projections to FLBEIA output. The way we do it here, is simply post-processing of available FLBEIA simulations. 
+In the following we just want to go through the main-steps with you,
+highlighting how to add additional information originating from economic
+projections to FLBEIA output. The way we do it here, is simply
+post-processing of available FLBEIA simulations.
 
+### Inputs & Required Files
 
-### 2. Inputs & Required Files
+-   `output/fleets.Rdata` (base fleets object for FLBEIA).
+-   `growthRate.csv` (annual % growth by country; first column
+    `country`, following columns = years).
+-   `priceRate.csv` (rows = scenarios `scen`; columns include `year`,
+    `var` in {`fuel_price`,`fish_price`}, and `rate`).
+-   `output/frac_fcost.2060.Rdata` (fixed-cost fractions per fleet).
+-   `output/frac_vcost.2060.Rdata` (variable-cost fractions per
+    fleet/metier).
+-   For script 0.2: directory `output/multi_econ/EMSRR/` containing
+    multi-iteration files (`SR.ensembles*`) for the relevant climate
+    scenarios.
 
-- `output/fleets.Rdata` (base fleets object for FLBEIA).
-- `growthRate.csv` (annual % growth by country; first column `country`, following columns = years).
-- `priceRate.csv` (rows = scenarios `scen`; columns include `year`, `var` in {`fuel_price`,`fish_price`}, and `rate`).
-- `output/frac_fcost.2060.Rdata` (fixed-cost fractions per fleet).
-- `output/frac_vcost.2060.Rdata` (variable-cost fractions per fleet/metier).
-- For script 0.2: directory `output/multi_econ/EMSRR/` containing multi-iteration files (`SR.ensembles*`) for the relevant climate scenarios.
+### Step 1:Build Economic Multipliers (01_prepare_projCosts.R)
 
-### Step 1 — Build Economic Multipliers (01_prepare_projCosts.R)
+This script prepares the economic multipliers for each fleet and metier
+separately. What it does:
 
-This script prepares the economic multipliers for each fleet and metier separately.
+1)  Loads out fleet-definition `fleets` (output/fleets.Rdata), sets
+    yrMax = 2100, and set a reference year yrRef = 2018.
+2)  From growthRate.csv, computes cumulative inflation factors by
+    country (flat extrapolation beyond last available year).
+3)  From priceRate.csv, compute cumulative factors for fuel_price and
+    fish_price by scenario.
+4)  Merge the above and using frac_fcost.2060.Rdata and
+    frac_vcost.2060.Rdata, derive:
+    -   relFcost (fixed-cost multiplier via inflation),
+    -   relVcost (variable-cost multiplier: non-fuel share via
+        inflation + fuel share via fuel_price),
+    -   relPrice (fish price multiplier).
+5)  Normalize relative to 2018 (yrRelCost = 2018, yrRelPrice = 2018).
+
+Output: output/relEcon.Rdata with columns: fleet, metier, scen, year,
+relVcost, relFcost, relPrice.
+
+### Step 2: Modify FLBEIA runs to incorporate economic projections (02_Add_Economic_data_to_FLBEIA_simulations.R)
+
+Now that we have a lookup table with our fleet/métier-specific rates for
+fixed costs, variable costs and fish prices, we add those
+scenario-specific rates to the FLBEIA output e.g. one iteration of a
+stochastic scenario projection.
+
 What it does:
 
-1) Loads out fleet-definition `fleets` (output/fleets.Rdata), sets yrMax = 2100, and set a reference year yrRef = 2018.
-2) From growthRate.csv, computes cumulative inflation factors by country (flat extrapolation beyond last available year).
-3) From priceRate.csv, compute cumulative factors for fuel_price and fish_price by scenario.
-4) Merge the above and using frac_fcost.2060.Rdata and frac_vcost.2060.Rdata, derive:
-    * relFcost (fixed-cost multiplier via inflation),
-    * relVcost (variable-cost multiplier: non-fuel share via inflation + fuel share via fuel_price),
-    * relPrice (fish price multiplier).
-5) Normalize relative to 2018 (yrRelCost = 2018, yrRelPrice = 2018).
+1)  Cleans environment, load FLR-packages and helper-functions.
+2)  Define the time horizon: first.yr = 2014, proj.yr = 2019, last.yr =
+    2060.
+3)  Load the output/relEcon.Rdata; harmonise scenario labels (e.g.,
+    RCP6.0 → RCP4.5).
+4)  Selects economic scenarios consistent with climate scenarios
+    (RCP4.5, RCP8.5).
+5)  For each economic scenario and HCR (e.g., FmsyH):
+6)  Find the matching multi-iteration result files in
+    output/multi_econ/EMSRR/ (those carrying SR.ensembles).
+7)  Loads the run object and extract the fleets-obj: res\$fleets.
+8)  Apply the multipliers over projection years to the:
+    -   fcost (fixed costs, once per fleet),
+    -   vcost per metier (variable costs),
+    -   price for each stock caught by that metier in each catch object
+        (via helper update.price).
 
-Output: output/relEcon.Rdata with columns: fleet, metier, scen, year, relVcost, relFcost, relPrice.
-
-
-### Step 2 — Modify FLBEIA runs to incorporate economic projections  (02_Add_Economic_data_to_FLBEIA_simulations.R)
-
-Now that we have a lookup table with our fleet/métier-specific rates for fixed costs, variable costs and fish prices, we add those scenario-specific rates to the FLBEIA output e.g. one iteration of a stochastic scenario projection. 
-
-What it does:
-
-1) Cleans environment, load FLR-packages and helper-functions.
-2) Define the time horizon: first.yr = 2014, proj.yr = 2019, last.yr = 2060.
-3) Load the output/relEcon.Rdata; harmonise scenario labels (e.g., RCP6.0 → RCP4.5).
-4) Selects economic scenarios consistent with climate scenarios (RCP4.5, RCP8.5).
-6) For each economic scenario and HCR (e.g., FmsyH):
-7) Find the matching multi-iteration result files in output/multi_econ/EMSRR/ (those carrying SR.ensembles).
-8) Loads the run object and extract the fleets-obj: res$fleets.
-9) Apply the multipliers over projection years to the:
-    * fcost (fixed costs, once per fleet),
-    * vcost per metier (variable costs),
-    * price for each stock caught by that metier in each catch object (via helper update.price).
-
-Output: output/multi_econ/EMSRR/econ_projections/<run>_econ_projection_<scenario>.RData
+Output:
+output/multi_econ/EMSRR/econ_projections/<run>*econ_projection*<scenario>.RData
 
 ### Results — graphics (from relEcon.Rdata)
 
-Here we just plot the different growth rates in fixed and variable costs as well as fish prices for the respective scenarios:
+Here we just plot the different growth rates in fixed and variable costs
+as well as fish prices for the respective scenarios:
 
 ```{r fig-eco-layout2, fig.width=10, fig.height=8, fig.cap='Example plots.',eval = F}
 
@@ -619,39 +728,73 @@ print(p1)
 
 ```
 
-An example of outcome from Deliverable 2.4 is reported below: 
-
+An example of outcome from Deliverable 2.4 is reported below:
 
 <p align="center">
-  <img src="Immage_NorthSea.png" width="70%">
+
+<img src="Immage_NorthSea.png" width="70%"/>
+
 </p>
 
 ## Implementing socio-economic scenarios in BEMTOOL - Adriatic and western Ionian Sea
 
-This chapter summarises the main steps to implement the socio-economic scenarios in BEMTOOL model.
+This chapter summarises the main steps to implement the socio-economic
+scenarios in BEMTOOL model.
 
 ### Introduction
 
-BEMTOOL is a bio-economic multi-fleet and multiple stocks simulation model ([Rossetto et al. (2015)](https://www.sciencedirect.com/science/article/abs/pii/S0308597X1400298X) and [Bitetto et al.(2025)](https://cdnsciencepub.com/doi/10.1139/cjfas-2024-0382)) and it  has been applied in SEAwise to model the demersal fisheries in Adriatic and wester Ionian Sea. BEMTOOL model includes 24 fleet segments, that which encompass both active and passive gears targeting demersal resources, and covers the dynamics of 10 key target stocks: European hake in GSAs 17-18, European hake in GSA 19, Red mullet in GSAs 17-18, Red mullet in GSA 19, Deep-water rose shrimp in GSAs 17-18-19, Common sole in GSA 17, Norway lobster in GSA 17, Norway lobster in GSA 18, giant red shrimp in GSAs 18-19 and blue and red shrimp in GSAs 18-19. More detailes can be found in Deliverables 2.3 [SEAwise report on carbon footprint, economic and social impacts](https://data.dtu.dk/articles/online_resource/SEAwise_report_on_Carbon_footprint_economic_and_social_impacts_of_revised_management_strategies/28079393) and 2.4 [SEAwise report on carbon footprint and impacts in a changing climate](https://data.dtu.dk/articles/online_resource/SEAwise_Report_on_Carbon_footprint_economic_and_social_impacts_of_revised_management_strategies_in_a_changing_climate_based_on_information_from_full_MSEs/29194667)).
+BEMTOOL is a bio-economic multi-fleet and multiple stocks simulation
+model ([Rossetto et al.
+(2015)](https://www.sciencedirect.com/science/article/abs/pii/S0308597X1400298X)
+and [Bitetto et
+al.(2025)](https://cdnsciencepub.com/doi/10.1139/cjfas-2024-0382)) and
+it has been applied in SEAwise to model the demersal fisheries in
+Adriatic and wester Ionian Sea. BEMTOOL model includes 24 fleet
+segments, that which encompass both active and passive gears targeting
+demersal resources, and covers the dynamics of 10 key target stocks:
+European hake in GSAs 17-18, European hake in GSA 19, Red mullet in GSAs
+17-18, Red mullet in GSA 19, Deep-water rose shrimp in GSAs 17-18-19,
+Common sole in GSA 17, Norway lobster in GSA 17, Norway lobster in GSA
+18, giant red shrimp in GSAs 18-19 and blue and red shrimp in GSAs
+18-19. More detailes can be found in Deliverables 2.3 [SEAwise report on
+carbon footprint, economic and social
+impacts](https://data.dtu.dk/articles/online_resource/SEAwise_report_on_Carbon_footprint_economic_and_social_impacts_of_revised_management_strategies/28079393)
+and 2.4 [SEAwise report on carbon footprint and impacts in a changing
+climate](https://data.dtu.dk/articles/online_resource/SEAwise_Report_on_Carbon_footprint_economic_and_social_impacts_of_revised_management_strategies_in_a_changing_climate_based_on_information_from_full_MSEs/29194667)).
 
 <p align="center">
-  <img src="map.png" width="60%">
+
+<img src="map.png" width="60%"/>
+
 </p>
 
 ### Steps to run socio-economic scenarios
 
-The steps to implement the socio-economic scenarios in BEMTOOL are basically 4:
+The steps to implement the socio-economic scenarios in BEMTOOL are
+basically 4:
 
-1) to run the scenarios combining management strategy and RCP effect on the stocks (following the WP3 and WP6 tutorials on BEMTOOL). 
-For examples you will have these folders: 1) SQ-RCP4.5, 2) Fmsy-RCP45, 3) SQ-RCP8.5, 4) Fmsy-RCP85.
+1)  to run the scenarios combining management strategy and RCP effect on
+    the stocks (following the WP3 and WP6 tutorials on BEMTOOL). For
+    examples you will have these folders: 1) SQ-RCP4.5, 2)
+    Fmsy-RCP45, 3) SQ-RCP8.5, 4) Fmsy-RCP85.
 
-2) create for each climate scenario a copy. From scenario 1) you will create a copy: one will be renamed as SQ-RCP4.5_GS and the other SQ-RCP4.5_LS. Duplicating scenario 2) you will have Fmsy-RCP45_GS and Fmsy-RCP45_LS. From scenarios 3) you will have SQ-RCP8.5_NE and SQ-RCP8.5_WM and the same for scenario 4): Fmsy-RCP85_NE and Fmsy-RCP85_WM.
+2)  create for each climate scenario a copy. From scenario 1) you will
+    create a copy: one will be renamed as SQ-RCP4.5_GS and the other
+    SQ-RCP4.5_LS. Duplicating scenario 2) you will have Fmsy-RCP45_GS
+    and Fmsy-RCP45_LS. From scenarios 3) you will have SQ-RCP8.5_NE and
+    SQ-RCP8.5_WM and the same for scenario 4): Fmsy-RCP85_NE and
+    Fmsy-RCP85_WM.
 
-From the 4 scenarios at point 2 you need to have 8 scenarios, duplicating each of the four, following the climate scenario associated to the relevant socio-economic scenario (as described in chapter 2).
+From the 4 scenarios at point 2 you need to have 8 scenarios,
+duplicating each of the four, following the climate scenario associated
+to the relevant socio-economic scenario (as described in chapter 2).
 
-3) Now we need to update in the 8 folders the indicators impacted by the socio-economic scenarios: 
-- revenues and variables costs (according change in fuel and fish price in Table 1);
-- labour costs
+3)  Now we need to update in the 8 folders the indicators impacted by
+    the socio-economic scenarios:
+
+-   revenues and variables costs (according change in fuel and fish
+    price in Table 1);
+-   labour costs
 
 Here an example of update for one scenario:
 
@@ -729,8 +872,12 @@ head(Eco_ind)
 
 ```
 
-4) Re-estimate socio-economic indicators (e.g. GVA,  wages, etc...) with updated fuel and fish price. An example of outcome from Deliverable 2.4 is reported below: 
+4)  Re-estimate socio-economic indicators (e.g. GVA, wages, etc...) with
+    updated fuel and fish price. An example of outcome from Deliverable
+    2.4 is reported below:
 
 <p align="center">
-  <img src="Socio-eco.jpg" width="70%">
+
+<img src="Socio-eco.jpg" width="70%"/>
+
 </p>
