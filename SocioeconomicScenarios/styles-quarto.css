@@ -1,0 +1,70 @@
+:root { --bs-heading-color: #0b7285; }
+
+/* header colorati – vincono sul tema */
+main#quarto-document-content h1 {
+  background: #0b7285 !important;
+  color: #fff !important;
+  padding: .6rem 1rem;
+  border-radius: .35rem;
+  margin-top: 2rem;
+}
+main#quarto-document-content h2 {
+  color: var(--bs-heading-color) !important;
+  border-left: 6px solid var(--bs-heading-color);
+  padding-left: .6rem;
+  margin-top: 1.6rem;
+}
+main#quarto-document-content h3 {
+  color: var(--bs-heading-color) !important;
+  border-bottom: 2px solid var(--bs-heading-color);
+  padding-bottom: .2rem;
+  margin-top: 1.2rem;
+}
+:root { --bs-body-font-size: 1.125rem !important; }  /* ≈ 18px */
+
+/* Per sicurezza, scala anche il body */
+body, main#quarto-document-content { font-size: 1.125rem !important; }
+
+/* (opzionale) lascia il TOC un filo più piccolo */
+#TOC, nav#toc { font-size: 0.95rem !important; }
+
+/* Se vuoi ingrandire anche titoli e tabelle in modo coerente */
+h1 { font-size: 2.2rem !important; }
+h2 { font-size: 1.7rem !important; }
+h3 { font-size: 1.35rem !important; }
+table.table { font-size: 1rem !important; }
+/* Callout personalizzata con bordo e icona */
+.callout-guidelines{
+  border: 1px solid var(--bs-primary, #0b7285);
+  border-left: 6px solid var(--bs-primary, #0b7285);
+  background: #f7fbff;
+  border-radius: .5rem;
+  padding: .9rem 1rem;
+  margin: 1rem 0;
+}
+.callout-guidelines .title{
+  display: flex; align-items: center; gap: .5rem;
+  font-weight: 700; color: var(--bs-primary, #0b7285);
+  margin-bottom: .5rem;
+}
+.callout-guidelines .icon{
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 22px; height: 22px;
+}
+.callout-guidelines ul{ margin: 0; padding-left: 1.1rem; }
+.callout-guidelines li{ margin: .25rem 0; }
+
+
+
+/* --- TOC size across Rmd/Quarto variants --- */
+#TOC, nav#TOC, nav.toc-active { font-size: 0.95rem !important; }
+
+
+/* --- Quarto title block adjustments --- */
+.quarto-title h1.title { display: none; } /* nascondi il titolo standard se usi la title-row custom */
+
+/* --- Title row custom (logo + titolo) --- */
+.title-row{ display:flex; align-items:center; justify-content:space-between; gap:1rem; margin:.5rem 0 1rem; }
+.title-row h1{ margin:0; font-size:2.2rem; line-height:1.1; color: var(--bs-heading-color, #0b7285); }
+.title-row img{ height:96px; }
+@media (max-width:576px){ .title-row{ flex-direction:column; align-items:flex-start; } .title-row img{ height:64px; } }

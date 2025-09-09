@@ -59,7 +59,10 @@ HCR.scenario  = c("FmsyH")
 
 # create new directory for multi-runs
 # for the EMSRR output
-dir.create(file.path("output", "multi_econ","EMSRR","econ_projections"),recursive = T,showWarnings = F)
+#dir.create(file.path("output", "multi_econ","EMSRR","econ_projections"),recursive = T,showWarnings = F)
+# Output dir (creata una volta, fuori dai loop)
+outdir <- here::here("output", "multi_econ", "EMSRR", "econ_projections")
+dir.create(outdir, recursive = TRUE, showWarnings = FALSE)
 
 # specify number of parallel cores to loop over several iterations
 parallel.cores = 2 # use two here (laptop), for a higher performing cluster use something around 15 maybe....
@@ -135,10 +138,37 @@ for(scen in econ.scen){ # for each economic scenario
       # add to original simulation
       res$fleets = fleets
       cat(paste(gsub(pattern = ".RData","",iter),"||",hcr,"\n"))
-      assign(x = gsub(pattern = ".RData","",iter),value = res)
-      save(list = gsub(pattern = ".RData","",iter),
-           file = file.path("./output/multi_econ/EMSRR/econ_projections",
-                            paste(paste(gsub(pattern = ".RData","",iter),"econ_projection",scen,sep = "_"),"RData",sep = ".")))
+      ## definito all’inizio dello script una sola volta
+      objname   <- sub("\\.RData$", "", iter)
+      scen_safe <- gsub("[^A-Za-z0-9._-]", "_", scen)
+      outfile   <- file.path(outdir, sprintf("%s_econ_projection_%s.RData", objname, scen_safe))
+      
+      
+          # debug (facoltativo)
+      message("WD = ", getwd())
+      message("Saving to = ", normalizePath(outfile, winslash = "/", mustWork = FALSE))
+      stopifnot(dir.exists(dirname(outfile)))
+      
+ 
+     
+      message("WD=", getwd())
+      message("OUTFILE=", normalizePath(outfile, winslash="/", mustWork=FALSE))
+      stopifnot(dir.exists(dirname(outfile)))
+      tf <- tempfile(tmpdir = dirname(outfile)); ok <- file.create(tf); unlink(tf)
+      message("Write test: ", ok)  # deve stampare TRUE
+      
+      # salvataggio + fallback se il nome è troppo lungo
+      save_ok <- tryCatch({ save(res, file = outfile); TRUE },
+                          error = function(e){ message("SAVE ERROR: ", conditionMessage(e)); FALSE })
+      if(!save_ok){
+        outfile2 <- file.path(outdir, sprintf("%s.RData", objname))  # nome più corto
+        message("Retry to: ", normalizePath(outfile2, winslash="/", mustWork=FALSE))
+        save(res, file = outfile2)
+      }
+      
+      save(res, file = outfile)
+      
+
     }
   }
 }
