@@ -1,6 +1,7 @@
 ---
-title: "SEAwise – Fish price & Variable costs"
+title: "SEAwise – Socio-economic scenarios implementation in bio-economic models"
 author: "Isabella Bitetto (Fondazione COISPA), Vassiliki Sgardeli (HCMR) and Bernhard Kuehn (Thuenen)"
+format: html
 editor: 
   markdown: 
     wrap: 72
@@ -60,7 +61,7 @@ document.addEventListener("DOMContentLoaded", function(){
 <a href="https://seawiseproject.org/" target="_blank">
 <img src="seawise_logo_fullcolour.png" width="20" height="22" style="margin-right:6px; vertical-align:middle;"/>
 SEAwise Website </a>
-<a href=https://github.com/ices-tools-dev/SEAwise" target="_blank">
+<a href="https://github.com/ices-tools-dev/SEAwise" target="_blank">
 <img src="github.svg" width="20" height="22" style="margin-right:6px; vertical-align:middle;"/>
 SEAwise Github </a>
 :::
@@ -677,7 +678,7 @@ FS=FS[-which(FS=="ALL")]
 for (fs in FS){
   print(fs)
   i=0
-  for (yea in c(2023:2060)){
+  for (yea in c(2023:2040)){
   
   Eco_ind[Eco_ind$Fleet_segment==fs & Eco_ind$Year==yea & Eco_ind$Variable=="variable.cost[fuel.cost]","Value"]=as.numeric(Eco_ind[Eco_ind$Fleet_segment==fs & Eco_ind$Year==(yea) & Eco_ind$Variable=="variable.cost[fuel.cost]","Value"])*(1+fu_pr/100)^i
   i=i+1
@@ -687,7 +688,7 @@ for (fs in FS){
   }
   
   i=0
-  for (yea in c(2023:2060)){
+  for (yea in c(2023:2040)){
     
     Eco_ind[Eco_ind$Fleet_segment==fs & Eco_ind$Year==yea & Eco_ind$Variable=="total.revenues","Value"]=as.numeric(Eco_ind[Eco_ind$Fleet_segment==fs & Eco_ind$Year==(yea) & Eco_ind$Variable=="total.revenues","Value"])*(1+fi_pr/100)^i
     i=i+1
@@ -697,7 +698,7 @@ for (fs in FS){
   }
   
   i=0
-  for (yea in c(2023:2060)){
+  for (yea in c(2023:2040)){
     
     Eco_ind[Eco_ind$Fleet_segment==fs & Eco_ind$Year==yea & Eco_ind$Variable=="total.revenues.landing","Value"]=as.numeric(Eco_ind[Eco_ind$Fleet_segment==fs & Eco_ind$Year==(yea) & Eco_ind$Variable=="total.revenues.landing","Value"])*(1+fi_pr/100)^i
     i=i+1
@@ -705,7 +706,7 @@ for (fs in FS){
     #print((1+fi_pr/100)^i)
     
   }
-  for (yea in c(2023:2060)){
+  for (yea in c(2023:2040)){
     Eco_ind[Eco_ind$Fleet_segment==fs & Eco_ind$Year==yea & Eco_ind$Variable=="variable.cost[tot.var.cost]","Value"]= (as.numeric(Eco_ind[Eco_ind$Fleet_segment==fs & Eco_ind$Year==yea & Eco_ind$Variable=="variable.cost[fuel.cost]" ,"Value"])+as.numeric(Eco_ind[Eco_ind$Fleet_segment==fs & Eco_ind$Year==yea & Eco_ind$Variable=="variable.cost[other.var.cost]" ,"Value"]))
     #print(i)
     #print((1+fi_pr/100)^i)
@@ -715,7 +716,7 @@ for (fs in FS){
   #CREW SHARE COEFFICIENT
   cs=as.numeric(Eco_ind[Eco_ind$Fleet_segment==fs & Eco_ind$Year==2022 & Eco_ind$Variable=="labour.cost"& Eco_ind$quantile==0.5,"Value"])/(as.numeric(Eco_ind[Eco_ind$Fleet_segment==fs & Eco_ind$Year==2022 & Eco_ind$Variable=="total.revenues" & Eco_ind$quantile==0.5,"Value"])-as.numeric(Eco_ind[Eco_ind$Fleet_segment==fs & Eco_ind$Year==2022 & Eco_ind$Variable=="variable.cost[tot.var.cost]" & Eco_ind$quantile==0.5,"Value"]))
   
-  for (yea in c(2023:2060)){
+  for (yea in c(2023:2040)){
     Eco_ind[Eco_ind$Fleet_segment==fs & Eco_ind$Year==yea & Eco_ind$Variable=="labour.cost","Value"]= cs*(as.numeric(Eco_ind[Eco_ind$Fleet_segment==fs & Eco_ind$Year==yea & Eco_ind$Variable=="total.revenues" ,"Value"])-as.numeric(Eco_ind[Eco_ind$Fleet_segment==fs & Eco_ind$Year==yea & Eco_ind$Variable=="variable.cost[tot.var.cost]" ,"Value"]))
     
     i=i+1

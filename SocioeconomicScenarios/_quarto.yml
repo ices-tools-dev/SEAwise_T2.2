@@ -3,13 +3,13 @@ project:
   output-dir: docs
 
 website:
-  title: "SEAwise – Fish price & Variable costs"
+  title: "SEAwise – Socio-economic scenarios implementation in bio-economic models"
   search: false
   navbar:
     title: false
     logo: pics/SeaWiseFinal-01.png
     left:
-      - href: Enhanced_fishprice_fuelcosts_submodels.qmd
+      - href: SocioEconomicScenarios.qmd
     right:
       - text: "SEAwise Website"
         href: https://seawiseproject.org/
