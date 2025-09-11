@@ -54,9 +54,9 @@ Four socio-economic scenarios, adapted from the CERES project (https://ceresproj
 
 * **Global Sustainability (GS) (RCP4.5, SSP1):** global sustainability is prioritized, aiming to limit climate change to the lower RCP4.5 target while striving to promote welfare by balancing economic, social, and environmental considerations, supported by strong trans-boundary cooperation. Key factors such as a smaller global population, improved fish stock management, cheaper sources of fish meal and oil for aquaculture, and increased competition between farmed and wild fish contribute to a more moderate rise in fish prices compared to other scenarios. 
  	
-* **National Enterprise (NE) (RCP8.5, SSP3):** governments prioritize national interests, focusing on maximizing welfare and employment within the fishing industry, but with reduced trans-national cooperation. Fish prices remain high to support national wellbeing and due to an increase in per capita consumption. Global warming is expected to follow the RCP8.5 trajectory, driven by limited technological innovation and a heavy reliance on fossil fuels, resulting in a significant rise in fuel prices.
+* **National Enterprise (NE) (RCP8.5, SSP3):** governments prioritize national interests, focusing on maximizing welfare and employment within the fishing industry, but with reduced trans-national cooperation. Fish prices remain high to support national well-being and due to an increase in per capita consumption. Global warming is expected to follow the RCP8.5 trajectory, driven by limited technological innovation and a heavy reliance on fossil fuels, resulting in a significant rise in fuel prices.
  	
-* **Local Stewardship (LS) (RCP4.5, SSP2):** this scenario envisions a path where sustainability is pursued through small-scale regional efforts, emphasizing equity, social inclusion, and democratic values.
+* **Local Stewardship (LS) (RCP4.5, SSP2):** this scenario envisions a path where sustainability is pursued through small-scale regional efforts, emphasizing equity, social inclusion, and democratic values.  Global warming is expected to follow the milder RCP4.5 warming, with relatively high rate of fish price increase but lower fuel price increase than the 'National Enterprise' scenario. 
 
 * **World Markets (WM) (RCP8.5, SSP5):** this scenario is defined by strong demand for affordable seafood (with a moderate rise in fish prices), increased technological innovation driven by global competition, lower taxes, and a robust private sector. While global warming follows the RCP8.5 pathway, the increase in fuel prices is slower than in the "National Enterprise" scenario, due to greater technological advancements.
 
@@ -140,7 +140,7 @@ i2  <- yrs['last.yr'] - yrs['first.yr'] + 1  # position of last yr in objects
  
 ```
 
-As a first step, we need to define tables with annual change rates in fish and fuel prices, following the scenarios described above. 
+The first step is to define the tables with annual change rates in fish and fuel prices, following the scenarios described above. 
 
 ```{r FLBEIA2, echo=TRUE}
 
@@ -160,7 +160,7 @@ fuel_price
 
 ```
 
-Then we need to specify the fraction of Variable costs corresponding to the fuel costs by fleet-metier combination. This is case study specific.
+Then, the fraction of Variable costs corresponding to the fuel costs by fleet-metier combination have to be defined. This is case study specific.
 
 
 ```{r FLBEIA3, echo=TRUE}
@@ -184,7 +184,7 @@ fuelcost_fr
 
 ```
 
-The next step is to modify the fish prices in the fleets object before running FLBEIA. In the following example, fish prices are changed according to 'WM' scenario.
+The next step is the modificaton of fish prices in the fleets object before calling FLBEIA. In the following example, fish prices are changed according to 'WM' scenario.
 
 ```{r FLBEIA5, echo=TRUE}
 
@@ -232,7 +232,7 @@ oneFl[["fl1"]]@metiers[["met1"]]@vcost[, i1:i2, , , ] <- oneFl[["fl1"]]@metiers[
 # ...
 ```
 
-Finally, we need just to run the FLBEIA model for WM scenario: 
+Finally, the FLBEIA model can be called for the WM scenario: 
 
 
 ```{r FLBEIA7, results = 'hide'}
@@ -253,7 +253,7 @@ WM <- FLBEIA(biols = oneBio,
               advice.ctrl = oneAdvC) 
 ```
 
-Same example of graphical output as can be extracted by the WM object follow: 
+Examples of graphical output that can be extracted by the WM object follow: 
 
 ```{r FLBEIA8, echo=TRUE} 
 library(dplyr)
@@ -274,7 +274,7 @@ ggplot(ssb_df, aes(x=as.numeric(as.character(year)), y=med)) +
 
 ```
 
-Here we have to estimate the revenues starting from the price per kg and the landing in weight: 
+Below, the revenues are estimated from the price per kg and the landing in weight: 
 
 ```{r FLBEIA9, echo=TRUE} 
 library(FLCore)
@@ -373,7 +373,7 @@ eco_summ <- eco %>%
 
 ```
 
-Some plots at different levels of detail (e.g. metier, fleet) follow: 
+Plots at different levels of detail (e.g. metier, fleet) follow: 
 
 ```{r FLBEIA10, echo=TRUE} 
 
